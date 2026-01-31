@@ -1,0 +1,935 @@
+import { sql } from "drizzle-orm";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, serial, primaryKey } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// ============================================
+// AUTH (from Replit Auth integration)
+// ============================================
+import { users, sessions, type User, type UpsertUser } from "./models/auth";
+export { users, sessions, type User, type UpsertUser };
+
+// ============================================
+// ROLES (for RBAC)
+// ============================================
+
+export const roles = pgTable("roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  permissions: jsonb("permissions").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Role = typeof roles.$inferSelect;
+
+// ============================================
+// OAUTH ACCOUNTS (Link SSO providers to users)
+// ============================================
+
+export type OAuthProvider = "google" | "microsoft" | "local";
+
+export const oauthAccounts = pgTable("oauth_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  provider: text("provider").$type<OAuthProvider>().notNull(),
+  providerAccountId: text("provider_account_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertOAuthAccountSchema = createInsertSchema(oauthAccounts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOAuthAccount = z.infer<typeof insertOAuthAccountSchema>;
+export type OAuthAccount = typeof oauthAccounts.$inferSelect;
+
+// ============================================
+// ORGANIZATIONS (Multi-tenancy)
+// ============================================
+
+export type OrgSSOProvider = "google" | "microsoft" | "none";
+
+export interface OrgSSOConfig {
+  autoJoinDomain?: boolean;
+  allowedDomains?: string[];
+  enforceSso?: boolean;
+}
+
+export const organizations = pgTable("organizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").unique().notNull(),
+  domain: text("domain"), // for SSO domain matching (e.g., "acme.com")
+  ssoProvider: text("sso_provider").$type<OrgSSOProvider>().default("none"),
+  ssoConfig: jsonb("sso_config").$type<OrgSSOConfig>().default({}),
+  logoUrl: text("logo_url"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
+
+// ============================================
+// USER-ORGANIZATION MEMBERSHIP
+// ============================================
+
+export type OrgMemberRole = "owner" | "admin" | "member" | "viewer";
+
+export const userOrganizations = pgTable("user_organizations", {
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  role: text("role").$type<OrgMemberRole>().default("member").notNull(),
+  invitedBy: varchar("invited_by").references(() => users.id),
+  invitedAt: timestamp("invited_at"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.organizationId] }),
+}));
+
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
+  createdAt: true,
+  joinedAt: true,
+});
+
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+export type UserOrganization = typeof userOrganizations.$inferSelect;
+
+// ============================================
+// ORGANIZATION INVITES
+// ============================================
+
+export type InviteStatus = "pending" | "accepted" | "expired" | "revoked";
+
+export const organizationInvites = pgTable("organization_invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role").$type<OrgMemberRole>().default("member").notNull(),
+  token: varchar("token").unique().notNull(),
+  invitedBy: varchar("invited_by").references(() => users.id),
+  status: text("status").$type<InviteStatus>().default("pending").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertOrganizationInviteSchema = createInsertSchema(organizationInvites).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
+export type InsertOrganizationInvite = z.infer<typeof insertOrganizationInviteSchema>;
+export type OrganizationInvite = typeof organizationInvites.$inferSelect;
+
+// ============================================
+// PRODUCTS & DIGITAL PRODUCT PASSPORTS
+// ============================================
+
+export interface OwnershipEntry {
+  owner: string;
+  date: string;
+  action: string;
+}
+
+export interface MaterialBreakdown {
+  material: string;
+  percentage: number;
+  recyclable: boolean;
+}
+
+export interface ServiceCenter {
+  name: string;
+  location: string;
+  contact?: string;
+}
+
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // === 1. PRODUCT IDENTIFICATION ===
+  productName: text("product_name").notNull(),
+  productCategory: text("product_category"),
+  modelNumber: text("model_number"),
+  sku: text("sku"),
+  manufacturer: text("manufacturer").notNull(),
+  manufacturerAddress: text("manufacturer_address"),
+  countryOfOrigin: text("country_of_origin"),
+  batchNumber: text("batch_number").notNull(),
+  lotNumber: text("lot_number"),
+  
+  // === 2. MATERIALS & COMPOSITION ===
+  materials: text("materials").notNull(),
+  materialBreakdown: jsonb("material_breakdown").$type<MaterialBreakdown[]>().default([]),
+  recycledContentPercent: integer("recycled_content_percent"),
+  recyclabilityPercent: integer("recyclability_percent"),
+  hazardousMaterials: text("hazardous_materials"),
+  
+  // === 3. ENVIRONMENTAL IMPACT ===
+  carbonFootprint: integer("carbon_footprint").notNull(),
+  waterUsage: integer("water_usage"),
+  energyConsumption: integer("energy_consumption"),
+  environmentalCertifications: jsonb("environmental_certifications").$type<string[]>().default([]),
+  
+  // === 4. DURABILITY & REPAIRABILITY ===
+  repairabilityScore: integer("repairability_score").notNull(),
+  expectedLifespanYears: integer("expected_lifespan_years"),
+  sparePartsAvailable: boolean("spare_parts_available"),
+  repairInstructions: text("repair_instructions"),
+  serviceCenters: jsonb("service_centers").$type<ServiceCenter[]>().default([]),
+  warrantyInfo: text("warranty_info").notNull(),
+  
+  // === 5. OWNERSHIP & LIFECYCLE ===
+  dateOfManufacture: timestamp("date_of_manufacture"),
+  dateOfFirstSale: timestamp("date_of_first_sale"),
+  ownershipHistory: jsonb("ownership_history").$type<OwnershipEntry[]>().default([]),
+  
+  // === 6. COMPLIANCE & CERTIFICATIONS ===
+  ceMarking: boolean("ce_marking"),
+  safetyCertifications: jsonb("safety_certifications").$type<string[]>().default([]),
+  
+  // === 7. END-OF-LIFE & RECYCLING ===
+  recyclingInstructions: text("recycling_instructions").notNull(),
+  disassemblyInstructions: text("disassembly_instructions"),
+  hazardWarnings: text("hazard_warnings"),
+  takeBackPrograms: jsonb("take_back_programs").$type<string[]>().default([]),
+  
+  // === SYSTEM FIELDS ===
+  productImage: text("product_image"),
+  qrCodeData: text("qr_code_data"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  qrCodeData: true,
+});
+
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;
+
+// Product Passports - Extended DPP information
+export const productPassports = pgTable("product_passports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  version: integer("version").default(1).notNull(),
+  complianceData: jsonb("compliance_data").$type<Record<string, unknown>>().default({}),
+  certifications: jsonb("certifications").$type<string[]>().default([]),
+  environmentalDeclarations: jsonb("environmental_declarations").$type<Record<string, unknown>>().default({}),
+  endOfLifeInstructions: text("end_of_life_instructions"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertProductPassportSchema = createInsertSchema(productPassports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertProductPassport = z.infer<typeof insertProductPassportSchema>;
+export type ProductPassport = typeof productPassports.$inferSelect;
+
+// ============================================
+// IDENTITIES
+// ============================================
+
+export const identities = pgTable("identities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  serialNumber: text("serial_number").notNull().unique(),
+  gtin: text("gtin"),
+  batchId: text("batch_id"),
+  identityType: text("identity_type").default("product").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  isValid: boolean("is_valid").default(true).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertIdentitySchema = createInsertSchema(identities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertIdentity = z.infer<typeof insertIdentitySchema>;
+export type Identity = typeof identities.$inferSelect;
+
+// ============================================
+// QR CODES
+// ============================================
+
+export const qrCodes = pgTable("qr_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  identityId: varchar("identity_id").references(() => identities.id),
+  qrData: text("qr_data").notNull(),
+  qrImageUrl: text("qr_image_url"),
+  format: text("format").default("png").notNull(),
+  size: integer("size").default(256).notNull(),
+  scanCount: integer("scan_count").default(0).notNull(),
+  lastScannedAt: timestamp("last_scanned_at"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertQRCodeSchema = createInsertSchema(qrCodes).omit({
+  id: true,
+  createdAt: true,
+  scanCount: true,
+  lastScannedAt: true,
+});
+
+export type InsertQRCode = z.infer<typeof insertQRCodeSchema>;
+export type QRCode = typeof qrCodes.$inferSelect;
+
+// ============================================
+// TRACE EVENTS (Supply Chain)
+// ============================================
+
+export type TraceEventType = 
+  | "manufactured"
+  | "shipped"
+  | "received"
+  | "transferred"
+  | "inspected"
+  | "repaired"
+  | "recycled"
+  | "disposed"
+  | "custom";
+
+export interface TraceLocation {
+  name: string;
+  address?: string;
+  coordinates?: { lat: number; lng: number };
+}
+
+export const traceEvents = pgTable("trace_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  eventType: text("event_type").$type<TraceEventType>().notNull(),
+  actor: text("actor").notNull(),
+  location: jsonb("location").$type<TraceLocation>(),
+  description: text("description"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  parentEventId: varchar("parent_event_id"),
+  timestamp: timestamp("timestamp").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertTraceEventSchema = createInsertSchema(traceEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTraceEvent = z.infer<typeof insertTraceEventSchema>;
+export type TraceEvent = typeof traceEvents.$inferSelect;
+
+// ============================================
+// IOT DEVICES (NFC, RFID, BLE Tags)
+// ============================================
+
+export type IoTDeviceType = "nfc" | "rfid" | "ble" | "qr" | "optical";
+export type IoTDeviceStatus = "active" | "inactive" | "lost" | "damaged";
+
+export interface IoTSensorReading {
+  timestamp: string;
+  temperature?: number;
+  humidity?: number;
+  shock?: boolean;
+  location?: { lat: number; lng: number };
+  batteryLevel?: number;
+  customData?: Record<string, unknown>;
+}
+
+export const iotDevices = pgTable("iot_devices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  deviceType: text("device_type").$type<IoTDeviceType>().notNull(),
+  deviceId: text("device_id").notNull().unique(),
+  manufacturer: text("manufacturer"),
+  model: text("model"),
+  firmwareVersion: text("firmware_version"),
+  status: text("status").$type<IoTDeviceStatus>().default("active").notNull(),
+  lastReading: jsonb("last_reading").$type<IoTSensorReading>(),
+  lastSeenAt: timestamp("last_seen_at"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertIoTDeviceSchema = createInsertSchema(iotDevices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSeenAt: true,
+});
+
+export type InsertIoTDevice = z.infer<typeof insertIoTDeviceSchema>;
+export type IoTDevice = typeof iotDevices.$inferSelect;
+
+// ============================================
+// AI INSIGHTS
+// ============================================
+
+export type AIInsightType = 
+  | "summary"
+  | "sustainability"
+  | "repair"
+  | "circularity"
+  | "risk_assessment";
+
+export const aiInsights = pgTable("ai_insights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  insightType: text("insight_type").$type<AIInsightType>().notNull(),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  confidence: integer("confidence"),
+  model: text("model"),
+  promptTokens: integer("prompt_tokens"),
+  completionTokens: integer("completion_tokens"),
+  isStale: boolean("is_stale").default(false).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertAIInsightSchema = createInsertSchema(aiInsights).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAIInsight = z.infer<typeof insertAIInsightSchema>;
+export type AIInsight = typeof aiInsights.$inferSelect;
+
+// ============================================
+// AUDIT LOGS
+// ============================================
+
+export type AuditAction = 
+  | "create"
+  | "update"
+  | "delete"
+  | "view"
+  | "export"
+  | "login"
+  | "logout";
+
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  action: text("action").$type<AuditAction>().notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: varchar("entity_id"),
+  oldValue: jsonb("old_value").$type<Record<string, unknown>>(),
+  newValue: jsonb("new_value").$type<Record<string, unknown>>(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  correlationId: varchar("correlation_id"),
+  timestamp: timestamp("timestamp").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+// ============================================
+// EVENTS (CloudEvents format for event bus)
+// ============================================
+
+export interface CloudEvent<T = unknown> {
+  specversion?: string;
+  id: string;
+  source: string;
+  type: string;
+  time: string;
+  datacontenttype: string;
+  data: T;
+  subject?: string;
+  correlationid?: string;
+}
+
+export type EventType =
+  | "com.photonictag.product.created"
+  | "com.photonictag.product.updated"
+  | "com.photonictag.product.deleted"
+  | "com.photonictag.qr.generated"
+  | "com.photonictag.identity.assigned"
+  | "com.photonictag.trace.recorded"
+  | "com.photonictag.ai.insights_generated";
+
+// ============================================
+// MODULAR DPP - REGIONAL EXTENSIONS
+// ============================================
+
+export type RegionCode = "EU" | "CN" | "US" | "IN" | "UK" | "JP" | "KR" | "ASEAN" | "OTHER";
+
+export interface EUExtensionData {
+  espr: {
+    productCategory: string;
+    complianceStatus: "compliant" | "pending" | "non_compliant";
+    dppVersion: string;
+    validFrom?: string;
+    validUntil?: string;
+  };
+  batteryRegulation?: {
+    batteryType: "ev" | "industrial" | "portable" | "light_means_of_transport";
+    stateOfHealth?: number;
+    carbonFootprintClass?: string;
+    cobaltSourcingDueDiligence?: boolean;
+    recycledContentCobalt?: number;
+    recycledContentLithium?: number;
+    recycledContentNickel?: number;
+  };
+  reach?: {
+    scipId?: string;
+    svhcPresent: boolean;
+    svhcSubstances?: string[];
+  };
+  ceMarking: boolean;
+  eprRegistrationId?: string;
+  repairabilityIndex?: number;
+}
+
+export interface ChinaExtensionData {
+  ccc: {
+    certificateNumber?: string;
+    required: boolean;
+    validUntil?: string;
+    certificationBody?: string;
+  };
+  gbStandards: {
+    applicableStandards: string[];
+    complianceStatus: "compliant" | "pending" | "non_compliant";
+  };
+  dualCarbon?: {
+    carbonIntensity?: number;
+    carbonQuotaStatus?: string;
+    greenProductCertified?: boolean;
+  };
+  chinaRoHS?: {
+    compliant: boolean;
+    restrictedSubstances?: string[];
+    exemptions?: string[];
+  };
+  recyclerRegistration?: {
+    registeredRecyclers: string[];
+    collectionNetwork?: string;
+  };
+}
+
+export interface USExtensionData {
+  ftc: {
+    madeInUSAClaim: boolean;
+    greenGuidesCompliant: boolean;
+    substantiationDocuments?: string[];
+  };
+  stateEPR: {
+    registeredStates: string[];
+    eprProgramIds: Record<string, string>;
+  };
+  secClimate?: {
+    scope3Included: boolean;
+    climateDisclosureStatus?: string;
+  };
+  californiaCompliance?: {
+    prop65Warning: boolean;
+    prop65Chemicals?: string[];
+    sbCompliance?: string[];
+  };
+}
+
+export interface IndiaExtensionData {
+  bis: {
+    registrationNumber?: string;
+    required: boolean;
+    productCategory?: string;
+    validUntil?: string;
+  };
+  eWasteRules?: {
+    categoryCode?: string;
+    proMembership?: string;
+    collectionTargetPercent?: number;
+  };
+  epr: {
+    registrationNumber?: string;
+    obligationType?: string;
+    targetYear?: number;
+  };
+  madeInIndia?: {
+    localContentPercent?: number;
+    manufacturingLocation?: string;
+  };
+}
+
+export interface RegionalExtensionPayload {
+  EU?: EUExtensionData;
+  CN?: ChinaExtensionData;
+  US?: USExtensionData;
+  IN?: IndiaExtensionData;
+  OTHER?: Record<string, unknown>;
+}
+
+export const dppRegionalExtensions = pgTable("dpp_regional_extensions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  regionCode: text("region_code").$type<RegionCode>().notNull(),
+  schemaVersion: text("schema_version").default("1.0").notNull(),
+  complianceStatus: text("compliance_status").$type<"compliant" | "pending" | "non_compliant" | "not_applicable">().default("pending").notNull(),
+  payload: jsonb("payload").$type<RegionalExtensionPayload>().default({}).notNull(),
+  validatedAt: timestamp("validated_at"),
+  validatedBy: varchar("validated_by"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertDppRegionalExtensionSchema = createInsertSchema(dppRegionalExtensions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDppRegionalExtension = z.infer<typeof insertDppRegionalExtensionSchema>;
+export type DppRegionalExtension = typeof dppRegionalExtensions.$inferSelect;
+
+// Zod schemas for regional extension validation
+export const euExtensionSchema = z.object({
+  espr: z.object({
+    productCategory: z.string(),
+    complianceStatus: z.enum(["compliant", "pending", "non_compliant"]),
+    dppVersion: z.string(),
+    validFrom: z.string().optional(),
+    validUntil: z.string().optional(),
+  }),
+  batteryRegulation: z.object({
+    batteryType: z.enum(["ev", "industrial", "portable", "light_means_of_transport"]),
+    stateOfHealth: z.number().optional(),
+    carbonFootprintClass: z.string().optional(),
+    cobaltSourcingDueDiligence: z.boolean().optional(),
+    recycledContentCobalt: z.number().optional(),
+    recycledContentLithium: z.number().optional(),
+    recycledContentNickel: z.number().optional(),
+  }).optional(),
+  reach: z.object({
+    scipId: z.string().optional(),
+    svhcPresent: z.boolean(),
+    svhcSubstances: z.array(z.string()).optional(),
+  }).optional(),
+  ceMarking: z.boolean(),
+  eprRegistrationId: z.string().optional(),
+  repairabilityIndex: z.number().optional(),
+});
+
+export const chinaExtensionSchema = z.object({
+  ccc: z.object({
+    certificateNumber: z.string().optional(),
+    required: z.boolean(),
+    validUntil: z.string().optional(),
+    certificationBody: z.string().optional(),
+  }),
+  gbStandards: z.object({
+    applicableStandards: z.array(z.string()),
+    complianceStatus: z.enum(["compliant", "pending", "non_compliant"]),
+  }),
+  dualCarbon: z.object({
+    carbonIntensity: z.number().optional(),
+    carbonQuotaStatus: z.string().optional(),
+    greenProductCertified: z.boolean().optional(),
+  }).optional(),
+  chinaRoHS: z.object({
+    compliant: z.boolean(),
+    restrictedSubstances: z.array(z.string()).optional(),
+    exemptions: z.array(z.string()).optional(),
+  }).optional(),
+  recyclerRegistration: z.object({
+    registeredRecyclers: z.array(z.string()),
+    collectionNetwork: z.string().optional(),
+  }).optional(),
+});
+
+export const usExtensionSchema = z.object({
+  ftc: z.object({
+    madeInUSAClaim: z.boolean(),
+    greenGuidesCompliant: z.boolean(),
+    substantiationDocuments: z.array(z.string()).optional(),
+  }),
+  stateEPR: z.object({
+    registeredStates: z.array(z.string()),
+    eprProgramIds: z.record(z.string()),
+  }),
+  secClimate: z.object({
+    scope3Included: z.boolean(),
+    climateDisclosureStatus: z.string().optional(),
+  }).optional(),
+  californiaCompliance: z.object({
+    prop65Warning: z.boolean(),
+    prop65Chemicals: z.array(z.string()).optional(),
+    sbCompliance: z.array(z.string()).optional(),
+  }).optional(),
+});
+
+export const indiaExtensionSchema = z.object({
+  bis: z.object({
+    registrationNumber: z.string().optional(),
+    required: z.boolean(),
+    productCategory: z.string().optional(),
+    validUntil: z.string().optional(),
+  }),
+  eWasteRules: z.object({
+    categoryCode: z.string().optional(),
+    proMembership: z.string().optional(),
+    collectionTargetPercent: z.number().optional(),
+  }).optional(),
+  epr: z.object({
+    registrationNumber: z.string().optional(),
+    obligationType: z.string().optional(),
+    targetYear: z.number().optional(),
+  }),
+  madeInIndia: z.object({
+    localContentPercent: z.number().optional(),
+    manufacturingLocation: z.string().optional(),
+  }).optional(),
+});
+
+// ============================================
+// ENHANCED AI INSIGHTS (with cache invalidation)
+// ============================================
+
+export const dppAiInsights = pgTable("dpp_ai_insights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  insightType: text("insight_type").$type<AIInsightType>().notNull(),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  confidence: integer("confidence"),
+  modelVersion: text("model_version"),
+  modelName: text("model_name"),
+  inputHash: text("input_hash"),
+  sourceSnapshot: jsonb("source_snapshot").$type<Record<string, unknown>>(),
+  promptTokens: integer("prompt_tokens"),
+  completionTokens: integer("completion_tokens"),
+  isStale: boolean("is_stale").default(false).notNull(),
+  version: integer("version").default(1).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertDppAiInsightSchema = createInsertSchema(dppAiInsights).omit({
+  id: true,
+  createdAt: true,
+  version: true,
+});
+
+export type InsertDppAiInsight = z.infer<typeof insertDppAiInsightSchema>;
+export type DppAiInsight = typeof dppAiInsights.$inferSelect;
+
+// ============================================
+// DPP MODULE SUMMARY (Unified view helper types)
+// ============================================
+
+export interface DppModuleSummary {
+  coreIdentity: {
+    id: string;
+    productName: string;
+    manufacturer: string;
+    countryOfOrigin?: string;
+    batchNumber: string;
+    lotNumber?: string;
+  };
+  productInfo: {
+    category?: string;
+    modelNumber?: string;
+    sku?: string;
+    manufacturerAddress?: string;
+  };
+  materials: {
+    description: string;
+    breakdown: MaterialBreakdown[];
+    hazardousMaterials?: string;
+  };
+  sustainability: {
+    carbonFootprint: number;
+    waterUsage?: number;
+    energyConsumption?: number;
+    recycledContentPercent?: number;
+    recyclabilityPercent?: number;
+    environmentalCertifications: string[];
+  };
+  durability: {
+    repairabilityScore: number;
+    expectedLifespanYears?: number;
+    sparePartsAvailable?: boolean;
+    warrantyInfo: string;
+    serviceCenters: ServiceCenter[];
+  };
+  lifecycle: {
+    dateOfManufacture?: Date;
+    dateOfFirstSale?: Date;
+    ownershipHistory: OwnershipEntry[];
+  };
+  endOfLife: {
+    recyclingInstructions: string;
+    disassemblyInstructions?: string;
+    hazardWarnings?: string;
+    takeBackPrograms: string[];
+  };
+  compliance: {
+    ceMarking?: boolean;
+    safetyCertifications: string[];
+  };
+  aiInsights: {
+    summary?: AISummary;
+    sustainability?: SustainabilityInsight;
+    repair?: RepairSummary;
+    circularity?: CircularityScore;
+    riskAssessment?: RiskAssessment;
+  };
+  regionalExtensions: {
+    EU?: EUExtensionData;
+    CN?: ChinaExtensionData;
+    US?: USExtensionData;
+    IN?: IndiaExtensionData;
+  };
+}
+
+// ============================================
+// ENTERPRISE INTEGRATIONS
+// ============================================
+
+export type ConnectorType = "sap" | "oracle" | "microsoft_dynamics" | "siemens" | "infor" | "custom";
+export type ConnectorStatus = "active" | "inactive" | "error" | "pending";
+export type SyncDirection = "inbound" | "outbound" | "bidirectional";
+
+export interface SAPConfig {
+  systemType: "S4HANA" | "ECC" | "Business_One";
+  hostname: string;
+  port: number;
+  client: string;
+  systemId: string;
+  apiType: "OData" | "RFC" | "IDoc";
+  oauthEnabled: boolean;
+  syncFrequency: "realtime" | "hourly" | "daily" | "manual";
+}
+
+export interface FieldMapping {
+  sourceField: string;
+  targetField: string;
+  transformation?: string;
+}
+
+export const enterpriseConnectors = pgTable("enterprise_connectors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  connectorType: text("connector_type").$type<ConnectorType>().notNull(),
+  status: text("status").$type<ConnectorStatus>().default("inactive").notNull(),
+  syncDirection: text("sync_direction").$type<SyncDirection>().default("inbound").notNull(),
+  config: jsonb("config").$type<SAPConfig | Record<string, unknown>>().default({}).notNull(),
+  fieldMappings: jsonb("field_mappings").$type<FieldMapping[]>().default([]),
+  lastSyncAt: timestamp("last_sync_at"),
+  lastSyncStatus: text("last_sync_status"),
+  productsSynced: integer("products_synced").default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertEnterpriseConnectorSchema = createInsertSchema(enterpriseConnectors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSyncAt: true,
+  lastSyncStatus: true,
+  productsSynced: true,
+});
+
+export type InsertEnterpriseConnector = z.infer<typeof insertEnterpriseConnectorSchema>;
+export type EnterpriseConnector = typeof enterpriseConnectors.$inferSelect;
+
+export const integrationSyncLogs = pgTable("integration_sync_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  connectorId: varchar("connector_id").references(() => enterpriseConnectors.id).notNull(),
+  syncType: text("sync_type").$type<"full" | "delta" | "manual">().notNull(),
+  status: text("status").$type<"running" | "completed" | "failed">().notNull(),
+  recordsProcessed: integer("records_processed").default(0),
+  recordsCreated: integer("records_created").default(0),
+  recordsUpdated: integer("records_updated").default(0),
+  recordsFailed: integer("records_failed").default(0),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertIntegrationSyncLogSchema = createInsertSchema(integrationSyncLogs).omit({
+  id: true,
+  completedAt: true,
+});
+
+export type InsertIntegrationSyncLog = z.infer<typeof insertIntegrationSyncLogSchema>;
+export type IntegrationSyncLog = typeof integrationSyncLogs.$inferSelect;
+
+// ============================================
+// AI RESPONSE TYPES (kept for API compatibility)
+// ============================================
+
+export interface AISummary {
+  summary: string;
+  keyFeatures: string[];
+}
+
+export interface SustainabilityInsight {
+  overallScore: number;
+  carbonAnalysis: string;
+  circularityRecommendations: string[];
+  improvements: string[];
+}
+
+export interface RepairSummary {
+  repairabilityRating: string;
+  repairInstructions: string[];
+  commonIssues: string[];
+  partsAvailability: string;
+}
+
+export interface CircularityScore {
+  score: number;
+  grade: string;
+  recyclabilityAnalysis: string;
+  materialEfficiency: string;
+  endOfLifeOptions: string[];
+  recommendations: string[];
+}
+
+export interface RiskAssessment {
+  overallRisk: "Low" | "Medium" | "High";
+  riskFlags: Array<{
+    type: string;
+    severity: "Low" | "Medium" | "High";
+    description: string;
+  }>;
+  dataCompleteness: number;
+  counterfeitRisk: string;
+  complianceIssues: string[];
+  recommendations: string[];
+}
