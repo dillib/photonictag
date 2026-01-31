@@ -890,6 +890,38 @@ export type InsertIntegrationSyncLog = z.infer<typeof insertIntegrationSyncLogSc
 export type IntegrationSyncLog = typeof integrationSyncLogs.$inferSelect;
 
 // ============================================
+// LEADS (for marketing & sales)
+// ============================================
+
+export type LeadSource = "landing_page" | "contact_form" | "pricing_page" | "demo_request" | "newsletter" | "linkedin" | "other";
+export type LeadStatus = "new" | "contacted" | "qualified" | "demo_scheduled" | "proposal_sent" | "won" | "lost";
+
+export const leads = pgTable("leads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull(),
+  name: text("name"),
+  company: text("company"),
+  phone: text("phone"),
+  message: text("message"),
+  source: text("source").$type<LeadSource>().default("landing_page").notNull(),
+  status: text("status").$type<LeadStatus>().default("new").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertLeadSchema = createInsertSchema(leads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+});
+
+export type InsertLead = z.infer<typeof insertLeadSchema>;
+export type Lead = typeof leads.$inferSelect;
+
+// ============================================
 // AI RESPONSE TYPES (kept for API compatibility)
 // ============================================
 

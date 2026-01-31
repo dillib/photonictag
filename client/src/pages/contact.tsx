@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MessageSquare, Phone, MapPin } from "lucide-react";
+import { Mail, MessageSquare, MapPin } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useForm } from "react-hook-form";
@@ -21,12 +22,41 @@ export default function Contact() {
     },
   });
 
-  const onSubmit = (data: any) => {
-    toast({
-      title: "Message Sent",
-      description: "Thank you for reaching out. We'll get back to you within 24 hours.",
-    });
-    form.reset();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.email,
+          name: data.name,
+          company: data.company,
+          message: data.message,
+          source: "contact_form",
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Message Sent! 🎉",
+          description: "Thank you for reaching out. We'll get back to you within 24 hours.",
+        });
+        form.reset();
+      } else {
+        throw new Error("Failed to submit");
+      }
+    } catch (error) {
+      toast({
+        title: "Something went wrong",
+        description: "Please try again or email us directly at hello@photonictag.com",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,8 +140,8 @@ export default function Contact() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" data-testid="button-submit">
-                      Send Message
+                    <Button type="submit" className="w-full" data-testid="button-submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Sending..." : "Send Message"}
                     </Button>
                   </form>
                 </Form>

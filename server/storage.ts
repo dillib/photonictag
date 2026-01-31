@@ -32,6 +32,9 @@ import {
   type InsertEnterpriseConnector,
   type IntegrationSyncLog,
   type InsertIntegrationSyncLog,
+  type Lead,
+  type InsertLead,
+  type LeadStatus,
   users,
   products,
   roles,
@@ -46,6 +49,7 @@ import {
   dppAiInsights,
   enterpriseConnectors,
   integrationSyncLogs,
+  leads,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -532,6 +536,43 @@ export class DatabaseStorage implements IStorage {
       .where(eq(integrationSyncLogs.id, id))
       .returning();
     return log;
+  }
+
+  // Leads
+  async getLead(id: string): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+    return lead;
+  }
+
+  async getLeadByEmail(email: string): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.email, email.toLowerCase()));
+    return lead;
+  }
+
+  async getAllLeads(): Promise<Lead[]> {
+    return db.select().from(leads).orderBy(desc(leads.createdAt));
+  }
+
+  async createLead(insertLead: InsertLead): Promise<Lead> {
+    const [lead] = await db.insert(leads).values({
+      ...insertLead,
+      email: insertLead.email.toLowerCase(),
+    } as typeof leads.$inferInsert).returning();
+    return lead;
+  }
+
+  async updateLead(id: string, updates: Partial<InsertLead> & { status?: LeadStatus; notes?: string }): Promise<Lead | undefined> {
+    const [lead] = await db
+      .update(leads)
+      .set({ ...updates, updatedAt: new Date() } as typeof leads.$inferInsert)
+      .where(eq(leads.id, id))
+      .returning();
+    return lead;
+  }
+
+  async deleteLead(id: string): Promise<boolean> {
+    const result = await db.delete(leads).where(eq(leads.id, id)).returning();
+    return result.length > 0;
   }
 }
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   QrCode,
   Shield,
@@ -83,11 +84,47 @@ const keyBenefits = [
 
 export default function Landing() {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Redirect to registration with pre-filled email
-    window.location.href = `/auth/register?email=${encodeURIComponent(email)}`;
+    if (!email) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          source: "landing_page",
+          metadata: { page: "hero_cta" }
+        }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "You're on the list! 🎉",
+          description: "We'll reach out shortly to set up your free trial.",
+        });
+        setEmail("");
+        // Optional: also redirect to registration
+        setTimeout(() => {
+          window.location.href = `/auth/register?email=${encodeURIComponent(email)}`;
+        }, 1500);
+      } else {
+        throw new Error("Failed to submit");
+      }
+    } catch (error) {
+      toast({
+        title: "Something went wrong",
+        description: "Please try again or email us at hello@photonictag.com",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -145,16 +182,23 @@ export default function Landing() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 text-base"
                 required
+                disabled={isSubmitting}
               />
-              <Button type="submit" size="lg" className="h-12 px-6 whitespace-nowrap">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button type="submit" size="lg" className="h-12 px-6 whitespace-nowrap" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Start Free Trial"}
+                {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
             </form>
 
             <p className="text-sm text-muted-foreground">
               14-day free trial • No credit card required • Setup in minutes
             </p>
+
+            <div className="pt-2">
+              <Link href="/contact" className="text-sm text-primary hover:underline font-medium">
+                Prefer to talk first? Book a demo →
+              </Link>
+            </div>
 
             {/* Trust Badges */}
             <div className="flex items-center justify-center gap-6 pt-4 flex-wrap">
@@ -432,10 +476,11 @@ export default function Landing() {
               onChange={(e) => setEmail(e.target.value)}
               className="h-12 text-base bg-primary-foreground text-foreground"
               required
+              disabled={isSubmitting}
             />
-            <Button type="submit" size="lg" variant="secondary" className="h-12 px-6 whitespace-nowrap">
-              Start Free Trial
-              <ArrowRight className="w-4 h-4 ml-2" />
+            <Button type="submit" size="lg" variant="secondary" className="h-12 px-6 whitespace-nowrap" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Start Free Trial"}
+              {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
             </Button>
           </form>
 
