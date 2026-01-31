@@ -32,6 +32,7 @@ import Terms from "@/pages/terms";
 import Solution from "@/pages/solution";
 import DemoGallery from "@/pages/demo-gallery";
 import NotFound from "@/pages/not-found";
+import LeadsPage from "@/pages/admin/leads";
 // Auth pages
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
@@ -123,6 +124,11 @@ function Router() {
       <Route path="/integrations/sap">
         <ProtectedRoute>
           <SAPConnector />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/leads">
+        <ProtectedRoute>
+          <LeadsPage />
         </ProtectedRoute>
       </Route>
       <Route path="/product/:id">
