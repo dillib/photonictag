@@ -17,6 +17,46 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### January 2026
+- **Validation Build Finalized**: Market validation launch ready with all public pages:
+  - Public pages: Landing, Examples (/scan/demo), Integrations, Pricing, Contact, Privacy, Terms
+  - No login pages in navigation - validation build is public-only
+  - CRM dashboard remains protected behind auth for internal lead management
+  - Custom PhotonicTag favicon/app icon generated
+  - SEO complete with react-helmet-async: Page-specific titles, meta descriptions, OG tags
+  - Six Integrated Modules section on landing and pricing pages
+  - Book a Demo button links to Google Calendar booking
+  - Demo booking link: https://calendar.app.google/Aa9nfUnJiZvcjXi28
+- **Lead Capture & CRM System**: Complete lead management for market validation launch:
+  - Leads database table with status pipeline (new → contacted → demo_scheduled → qualified → won/lost)
+  - Lead activities table for tracking interactions and notes
+  - Public contact form at /contact with qualification fields (tier interest, volume, company)
+  - Protected CRM dashboard at /crm for lead management
+  - VC validation metrics: lead volume, lead velocity (week-over-week growth %), conversion rate, enterprise interest count
+  - Tier interest breakdown chart (Enterprise, Growth, Starter, Free)
+  - Pipeline status distribution visualization
+  - Search and filtering for lead list
+  - Status update workflow with activity logging
+  - Book a Demo integration with Google Calendar booking link
+  - API endpoints: POST /api/leads (public), GET/PATCH /api/leads (protected), GET /api/leads/stats
+- **Enhanced Pricing Page**: Comprehensive pricing improvements for enterprise buyers:
+  - Added Free tier (100 products, no credit card required)
+  - Value anchoring with EU DPP compliance penalties (€10K-100K+ per violation)
+  - ROI visibility section showing compliance savings, time efficiency, SAP integration value
+  - SAP integration highlighted as Enterprise tier differentiator
+  - Annual discount increased from 10% to 20% (industry standard)
+  - Competitive comparison table vs DIY, Legacy PLM, Generic QR solutions
+  - EU DPP compliance deadline reminders (2027 batteries, 2030 all products)
+- **SAP Integration Demo Dashboard**: Visual demo showing bidirectional sync with mock SAP system:
+  - Mock SAP OData service with 100 realistic material master records (MARA/MARC structures)
+  - Split-screen dashboard showing SAP materials vs PhotonicTag products
+  - "Sync from SAP" button imports materials as DPP products
+  - "Sync to SAP" button exports product changes back to SAP
+  - "Full Bidirectional Sync" for complete two-way synchronization
+  - Conflict detection when data differs in both systems
+  - Conflict resolution UI with side-by-side value comparison
+  - Sync audit trail logging all sync events with timestamps
+  - Progress animations during sync operations
+  - Routes: /integrations/sap-demo (protected), API: /api/sap/* endpoints
 - **Enterprise SAP Integration**: Complete SAP connector configuration for enterprise ERP integration:
   - SAP Connector admin page with connection configuration (S/4HANA, ECC, Business One)
   - Field mapping between SAP material master fields and DPP fields
