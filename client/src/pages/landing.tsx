@@ -463,10 +463,10 @@ export default function Landing() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Ready for EU DPP Compliance?
+            Ready to See PhotonicTag in Action?
           </h2>
           <p className="text-lg opacity-90">
-            Join 850+ brands using PhotonicTag. Start free — no credit card required.
+            Join 850+ brands using PhotonicTag. Book a technical demo and see live SAP integration.
           </p>
 
           <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">

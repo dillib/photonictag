@@ -91,7 +91,7 @@ export function PublicFooter() {
         {/* Bottom bar */}
         <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2025 PhotonicTag. All rights reserved.
+            © 2026 PhotonicTag. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>SOC 2 Type II</span>
