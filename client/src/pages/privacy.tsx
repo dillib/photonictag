@@ -19,8 +19,8 @@ export default function Privacy() {
         <div className="prose prose-lg max-w-none dark:prose-invert">
           <h2>1. Introduction</h2>
           <p>
-            PhotonicTag GmbH ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
-            explains how we collect, use, disclose, and safeguard your information when you use our digital 
+            PhotonicTag ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy
+            explains how we collect, use, disclose, and safeguard your information when you use our digital
             product passport platform and related services.
           </p>
 

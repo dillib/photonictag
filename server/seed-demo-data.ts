@@ -274,8 +274,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "Batteries",
       modelNumber: "EP-LION-5000",
       sku: "GCT-BAT-5000-BLK",
-      manufacturer: "GreenCell Technologies GmbH",
-      manufacturerAddress: "Industriestrasse 42, 80939 Munich, Germany",
+      manufacturer: "GreenCell Technologies",
+      // manufacturerAddress removed for validation: "Industriestrasse 42, 80939 Munich, Germany",
       countryOfOrigin: "Germany",
       batchNumber: "GCT-BAT-2025-0842",
       lotNumber: "LOT-2025-Q3-0842",
@@ -300,14 +300,14 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Battery cells can be replaced by certified technicians. See service manual for disassembly procedure.",
       serviceCenters: [
-        { name: "GreenCell Munich Service", location: "Munich, Germany", contact: "+49 89 1234567" },
-        { name: "GreenCell Berlin Hub", location: "Berlin, Germany", contact: "+49 30 9876543" }
+        { name: "GreenCell Service Center", location: "Munich, Germany" },
+        { name: "GreenCell Service Center", location: "Berlin, Germany" }
       ],
       warrantyInfo: "5-year manufacturer warranty with recycling guarantee",
       dateOfManufacture: new Date("2025-08-15"),
       dateOfFirstSale: new Date("2025-10-10"),
       ownershipHistory: [
-        { owner: "GreenCell Technologies GmbH", date: "2025-08-15", action: "Manufactured" },
+        { owner: "GreenCell Technologies", date: "2025-08-15", action: "Manufactured" },
         { owner: "EuroTech Distribution", date: "2025-09-01", action: "Wholesale Transfer" },
         { owner: "PowerMax Retail", date: "2025-10-10", action: "Retail Stock" }
       ],
@@ -336,8 +336,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "Apparel",
       modelNumber: "NW-PS-NAVY-M",
       sku: "SKF-WOOL-NAVY-M",
-      manufacturer: "ScandiKnit Fashion AB",
-      manufacturerAddress: "Textilgatan 15, 411 06 Gothenburg, Sweden",
+      manufacturer: "ScandiKnit Fashion",
+      // manufacturerAddress removed for validation: "Textilgatan 15, 411 06 Gothenburg, Sweden",
       countryOfOrigin: "Sweden",
       batchNumber: "SKF-TEX-2025-1847",
       lotNumber: "LOT-2025-SUM-1847",
@@ -360,13 +360,13 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Minor repairs can be done at home. Buttons and seams repaired free at any ScandiKnit partner.",
       serviceCenters: [
-        { name: "ScandiKnit Repair Studio", location: "Gothenburg, Sweden", contact: "+46 31 123456" }
+        { name: "ScandiKnit Repair Studio", location: "Gothenburg, Sweden" }
       ],
       warrantyInfo: "Lifetime repair service for seams and buttons. 2-year warranty against defects.",
       dateOfManufacture: new Date("2025-06-20"),
       dateOfFirstSale: new Date("2025-08-01"),
       ownershipHistory: [
-        { owner: "ScandiKnit Fashion AB", date: "2025-06-20", action: "Manufactured in Gothenburg" },
+        { owner: "ScandiKnit Fashion", date: "2025-06-20", action: "Manufactured in Gothenburg" },
         { owner: "Nordic Fashion Hub", date: "2025-07-15", action: "Distribution" },
         { owner: "EcoStyle Boutique Berlin", date: "2025-08-01", action: "Retail" }
       ],
@@ -394,8 +394,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "IoT Devices",
       modelNumber: "SHH-X200-PRO",
       sku: "TBE-IOT-X200-BLK",
-      manufacturer: "TechBridge Electronics Ltd",
-      manufacturerAddress: "Tehnoloski park 24, 1000 Ljubljana, Slovenia",
+      manufacturer: "TechBridge Electronics",
+      // manufacturerAddress removed for validation: "Tehnoloski park 24, 1000 Ljubljana, Slovenia",
       countryOfOrigin: "Slovenia",
       batchNumber: "TBE-IOT-2025-X200-3421",
       lotNumber: "LOT-2025-APR-3421",
@@ -420,14 +420,14 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Modular design allows battery, screen, and main board replacement. See iFixit guide.",
       serviceCenters: [
-        { name: "TechBridge Service Center EU", location: "Ljubljana, Slovenia", contact: "+386 1 234567" },
-        { name: "TechBridge Partner - MediaMarkt", location: "Multiple EU locations" }
+        { name: "TechBridge Service Center", location: "Ljubljana, Slovenia" },
+        { name: "TechBridge Partner Network", location: "Multiple EU locations" }
       ],
       warrantyInfo: "3-year warranty. Spare parts available for 10 years. Firmware updates for 7 years.",
       dateOfManufacture: new Date("2025-04-10"),
       dateOfFirstSale: null,
       ownershipHistory: [
-        { owner: "TechBridge Electronics Ltd", date: "2025-04-10", action: "Manufactured in Slovenia" },
+        { owner: "TechBridge Electronics", date: "2025-04-10", action: "Manufactured in Slovenia" },
         { owner: "EU Smart Logistics", date: "2025-05-01", action: "Regional Distribution" }
       ],
       ceMarking: true,
@@ -456,7 +456,7 @@ const demoProducts: DemoProductData[] = [
       modelNumber: "CP-MOD-1200",
       sku: "RLP-PKG-MOD-1200",
       manufacturer: "ReLoop Packaging Solutions",
-      manufacturerAddress: "Circular Economy Park 1, 2000 Maribor, Slovenia",
+      // manufacturerAddress removed for validation: "Circular Economy Park 1, 2000 Maribor, Slovenia",
       countryOfOrigin: "Slovenia",
       batchNumber: "RLP-PKG-2024-MOD-1152",
       lotNumber: "LOT-2024-NOV-1152",
@@ -479,8 +479,8 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Modular design - damaged panels can be swapped. Steel corners replaceable.",
       serviceCenters: [
-        { name: "ReLoop Refurbishment Center", location: "Maribor, Slovenia", contact: "+386 2 345678" },
-        { name: "ReLoop Rotterdam Hub", location: "Rotterdam, Netherlands" }
+        { name: "ReLoop Refurbishment Center", location: "Maribor, Slovenia" },
+        { name: "ReLoop Service Hub", location: "Rotterdam, Netherlands" }
       ],
       warrantyInfo: "10-year structural warranty. Tracking system guaranteed for 7 years.",
       dateOfManufacture: new Date("2024-11-15"),
@@ -514,8 +514,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "EV Accessories",
       modelNumber: "ALP-T2-7500",
       sku: "CTE-EVC-T2-750",
-      manufacturer: "ChargeTech Europe SA",
-      manufacturerAddress: "Zona Industrial Norte, 4470-089 Maia, Portugal",
+      manufacturer: "ChargeTech Europe",
+      // manufacturerAddress removed for validation: "Zona Industrial Norte, 4470-089 Maia, Portugal",
       countryOfOrigin: "Portugal",
       batchNumber: "CTE-EVC-2025-7500-0892",
       lotNumber: "LOT-2025-SEP-0892",
@@ -539,13 +539,13 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Connector housing can be replaced. Cable cannot be spliced - full replacement if damaged.",
       serviceCenters: [
-        { name: "ChargeTech Portugal HQ", location: "Maia, Portugal", contact: "+351 22 9876543" }
+        { name: "ChargeTech Service Center", location: "Portugal" }
       ],
       warrantyInfo: "5-year warranty on cable. Connector rated for 10,000+ connection cycles.",
       dateOfManufacture: new Date("2025-09-20"),
       dateOfFirstSale: null,
       ownershipHistory: [
-        { owner: "ChargeTech Europe SA", date: "2025-09-20", action: "Manufactured in Portugal" },
+        { owner: "ChargeTech Europe", date: "2025-09-20", action: "Manufactured in Portugal" },
         { owner: "EV Parts Direct", date: "2025-10-05", action: "Distribution" }
       ],
       ceMarking: true,
@@ -572,8 +572,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "Consumer Electronics",
       modelNumber: "SW-PRO-ANC-45",
       sku: "AUD-HP-PRO-BLK",
-      manufacturer: "AudioTech Innovation GmbH",
-      manufacturerAddress: "Schallweg 12, 10117 Berlin, Germany",
+      manufacturer: "AudioTech Innovation",
+      // manufacturerAddress removed for validation: "Schallweg 12, 10117 Berlin, Germany",
       countryOfOrigin: "China",
       batchNumber: "ATI-AUD-2025-4592",
       lotNumber: "LOT-2025-AUG-4592",
@@ -599,14 +599,14 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Ear cushions and headband pads are user-replaceable. Battery replacement requires authorized service.",
       serviceCenters: [
-        { name: "AudioTech Berlin Service", location: "Berlin, Germany", contact: "+49 30 5551234" },
-        { name: "AudioTech Authorized Partners", location: "EU-wide network" }
+        { name: "AudioTech Service Center", location: "Berlin, Germany" },
+        { name: "AudioTech Partner Network", location: "EU-wide" }
       ],
       warrantyInfo: "2-year limited warranty. Ear cushion replacement kits available.",
       dateOfManufacture: new Date("2025-08-22"),
       dateOfFirstSale: new Date("2025-09-15"),
       ownershipHistory: [
-        { owner: "AudioTech Innovation GmbH", date: "2025-08-22", action: "Manufactured" },
+        { owner: "AudioTech Innovation", date: "2025-08-22", action: "Manufactured" },
         { owner: "MediaMarkt Distribution", date: "2025-09-01", action: "Wholesale" },
         { owner: "Consumer Direct", date: "2025-09-15", action: "Retail Sale" }
       ],
@@ -634,8 +634,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "Fashion Accessories",
       modelNumber: "ML-TOTE-CAM-L",
       sku: "FAS-BAG-TOTE-CAM",
-      manufacturer: "Bottega Toscana Srl",
-      manufacturerAddress: "Via del Cuoio 15, 50125 Firenze, Italy",
+      manufacturer: "Bottega Toscana",
+      // manufacturerAddress removed for validation: "Via del Cuoio 15, 50125 Firenze, Italy",
       countryOfOrigin: "Italy",
       batchNumber: "BTS-LEA-2025-2847",
       lotNumber: "LOT-2025-SPR-2847",
@@ -659,14 +659,14 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Leather conditioning recommended annually. Hardware replacement and stitching repairs available at any Bottega Toscana boutique.",
       serviceCenters: [
-        { name: "Bottega Toscana Florence Atelier", location: "Florence, Italy", contact: "+39 055 1234567" },
-        { name: "Bottega Toscana Milan Boutique", location: "Milan, Italy", contact: "+39 02 9876543" }
+        { name: "Bottega Toscana Atelier", location: "Florence, Italy" },
+        { name: "Bottega Toscana Boutique", location: "Milan, Italy" }
       ],
       warrantyInfo: "Lifetime craftsmanship warranty. Free leather conditioning service annually.",
       dateOfManufacture: new Date("2025-03-15"),
       dateOfFirstSale: new Date("2025-04-01"),
       ownershipHistory: [
-        { owner: "Bottega Toscana Srl", date: "2025-03-15", action: "Handcrafted in Florence" },
+        { owner: "Bottega Toscana", date: "2025-03-15", action: "Handcrafted in Florence" },
         { owner: "Luxury Goods Distribution", date: "2025-03-25", action: "Distribution" },
         { owner: "Harrods London", date: "2025-04-01", action: "Retail" }
       ],
@@ -694,8 +694,8 @@ const demoProducts: DemoProductData[] = [
       productCategory: "Smart Home",
       modelNumber: "EN-THERM-PRO-W",
       sku: "SMH-THERM-PRO-WHT",
-      manufacturer: "GreenHome Technologies BV",
-      manufacturerAddress: "Energieweg 88, 5617 AM Eindhoven, Netherlands",
+      manufacturer: "GreenHome Technologies",
+      // manufacturerAddress removed for validation: "Energieweg 88, 5617 AM Eindhoven, Netherlands",
       countryOfOrigin: "Netherlands",
       batchNumber: "GHT-SMH-2025-8834",
       lotNumber: "LOT-2025-OCT-8834",
@@ -719,14 +719,14 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Modular design allows display and sensor replacement. Firmware updates extend product life.",
       serviceCenters: [
-        { name: "GreenHome Eindhoven HQ", location: "Eindhoven, Netherlands", contact: "+31 40 1234567" },
+        { name: "GreenHome Service Center", location: "Eindhoven, Netherlands" },
         { name: "GreenHome Partner Network", location: "EU-wide" }
       ],
       warrantyInfo: "5-year warranty. 10-year firmware update commitment. Spare parts available for 15 years.",
       dateOfManufacture: new Date("2025-10-05"),
       dateOfFirstSale: null,
       ownershipHistory: [
-        { owner: "GreenHome Technologies BV", date: "2025-10-05", action: "Manufactured in Netherlands" },
+        { owner: "GreenHome Technologies", date: "2025-10-05", action: "Manufactured in Netherlands" },
         { owner: "Smart Living Distribution", date: "2025-10-15", action: "Distribution" }
       ],
       ceMarking: true,
@@ -755,7 +755,7 @@ const demoProducts: DemoProductData[] = [
       modelNumber: "IP-EP400-3-1200",
       sku: "IND-CVB-EP400-1200",
       manufacturer: "IndustrialPro Beltings",
-      manufacturerAddress: "Industrial Area Phase II, Faridabad, Haryana 121003, India",
+      // manufacturerAddress removed for validation: "Industrial Area Phase II, Faridabad, Haryana 121003, India",
       countryOfOrigin: "India",
       batchNumber: "IPB-CVB-2025-EP400-2847",
       lotNumber: "LOT-2025-DEC-2847",
@@ -779,9 +779,9 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Hot vulcanization for splice repairs. Cold bonding for minor cuts. Belt edge repair kits available. Professional installation recommended for major repairs.",
       serviceCenters: [
-        { name: "Faridabad Service Center", location: "Faridabad, India", contact: "+91 129 4567890" },
-        { name: "Mumbai Regional Hub", location: "Mumbai, India", contact: "+91 22 9876543" },
-        { name: "Middle East Service Center", location: "Dubai, UAE", contact: "+971 4 1234567" }
+        { name: "IndustrialPro Service Center", location: "Faridabad, India" },
+        { name: "IndustrialPro Regional Hub", location: "Mumbai, India" },
+        { name: "IndustrialPro MENA Service", location: "Dubai, UAE" }
       ],
       warrantyInfo: "3-year warranty against manufacturing defects. Extended warranty available for premium installations. 24/7 emergency support for industrial clients.",
       dateOfManufacture: new Date("2025-12-01"),
@@ -816,7 +816,7 @@ const demoProducts: DemoProductData[] = [
       modelNumber: "CT-DR50-800-S",
       sku: "IND-ROL-DR50-800",
       manufacturer: "ConveyorTech Systems",
-      manufacturerAddress: "Industrial Zone B, Pune, Maharashtra 411018, India",
+      // manufacturerAddress removed for validation: "Industrial Zone B, Pune, Maharashtra 411018, India",
       countryOfOrigin: "India",
       batchNumber: "CTS-ROL-2025-DR50-1423",
       lotNumber: "LOT-2025-DEC-1423",
@@ -840,9 +840,9 @@ const demoProducts: DemoProductData[] = [
       sparePartsAvailable: true,
       repairInstructions: "Bearing replacement is straightforward with standard tools. Shaft and tube replacement available. Polyurethane coating can be reapplied for worn rollers.",
       serviceCenters: [
-        { name: "Pune Service Center", location: "Pune, India", contact: "+91 20 1234567" },
-        { name: "Delhi Regional Hub", location: "New Delhi, India", contact: "+91 11 9876543" },
-        { name: "Singapore Asia-Pacific Center", location: "Singapore", contact: "+65 6123 4567" }
+        { name: "ConveyorTech Service Center", location: "Pune, India" },
+        { name: "ConveyorTech Regional Hub", location: "New Delhi, India" },
+        { name: "ConveyorTech Asia-Pacific", location: "Singapore" }
       ],
       warrantyInfo: "5-year warranty on roller body and bearings. Extended warranty available. Global spare parts network.",
       dateOfManufacture: new Date("2025-12-05"),

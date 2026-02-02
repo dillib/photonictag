@@ -95,8 +95,8 @@ export default function Terms() {
 
           <h2>12. Governing Law</h2>
           <p>
-            These terms shall be governed by the laws of Germany. Any disputes shall be resolved 
-            in the courts of Berlin, Germany.
+            These terms shall be governed by and construed in accordance with applicable laws.
+            Any disputes arising from these terms will be resolved through appropriate legal channels.
           </p>
 
           <h2>13. Changes to Terms</h2>

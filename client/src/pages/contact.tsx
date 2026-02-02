@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MessageSquare, MapPin } from "lucide-react";
+import { Mail, MessageSquare } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useForm } from "react-hook-form";
@@ -176,22 +176,6 @@ export default function Contact() {
                   <a href="mailto:sales@photonictag.com" className="text-primary hover:underline" data-testid="link-email-sales">
                     sales@photonictag.com
                   </a>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Office</h3>
-                  <p className="text-muted-foreground text-sm">
-                    PhotonicTag GmbH<br />
-                    Friedrichstrasse 123<br />
-                    10117 Berlin, Germany
-                  </p>
                 </div>
               </CardContent>
             </Card>

@@ -47,8 +47,7 @@ import { apiRequest } from "@/lib/queryClient";
 const demoProduct: Partial<Product> & { id: string; productName: string; manufacturer: string; batchNumber: string; materials: string; carbonFootprint: number; repairabilityScore: number; warrantyInfo: string; recyclingInstructions: string } = {
   id: "demo",
   productName: "EcoPower Li-Ion Battery Pack 5000mAh",
-  manufacturer: "GreenCell Technologies GmbH",
-  manufacturerAddress: "Industriestrasse 42, 80939 Munich, Germany",
+  manufacturer: "GreenCell Technologies",
   countryOfOrigin: "Germany",
   productCategory: "Batteries",
   modelNumber: "EP-LION-5000",
@@ -75,14 +74,14 @@ const demoProduct: Partial<Product> & { id: string; productName: string; manufac
   sparePartsAvailable: true,
   repairInstructions: "Battery cells can be replaced by certified technicians. See service manual for disassembly procedure.",
   serviceCenters: [
-    { name: "GreenCell Munich Service", location: "Munich, Germany", contact: "+49 89 1234567" },
-    { name: "GreenCell Berlin Hub", location: "Berlin, Germany", contact: "+49 30 9876543" }
+    { name: "GreenCell Service Center", location: "Munich, Germany" },
+    { name: "GreenCell Service Center", location: "Berlin, Germany" }
   ],
   warrantyInfo: "5-year manufacturer warranty covering defects. Free recycling guarantee at end of life. Extended warranty options available.",
   dateOfManufacture: new Date("2025-08-15"),
   dateOfFirstSale: new Date("2025-10-10"),
   ownershipHistory: [
-    { owner: "GreenCell Technologies GmbH", date: "2025-08-15", action: "Manufactured" },
+    { owner: "GreenCell Technologies", date: "2025-08-15", action: "Manufactured" },
     { owner: "EuroTech Distribution", date: "2025-09-01", action: "Wholesale Transfer" },
     { owner: "PowerMax Retail", date: "2025-10-10", action: "Retail Stock" }
   ],
