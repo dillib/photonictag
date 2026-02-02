@@ -12,29 +12,46 @@ const SMTP_PASS = process.env.SMTP_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || "noreply@photonictag.com";
 
 let transporter: Transporter | null = null;
+let emailDisabled = false;
+
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+// Check if email is properly configured
+export function isEmailConfigured(): boolean {
+  return !!(SMTP_HOST && SMTP_USER && SMTP_PASS);
+}
 
 // Create a test transporter for development (uses Ethereal)
-async function createDevTransporter(): Promise<Transporter> {
-  // Create a test account on Ethereal
-  const testAccount = await nodemailer.createTestAccount();
+async function createDevTransporter(): Promise<Transporter | null> {
+  try {
+    // Create a test account on Ethereal
+    const testAccount = await nodemailer.createTestAccount();
 
-  console.log("[EmailService] Using Ethereal test account for development");
-  console.log(`  - User: ${testAccount.user}`);
-  console.log(`  - Preview emails at: https://ethereal.email`);
+    console.log("[EmailService] Using Ethereal test account for development");
+    console.log(`  - User: ${testAccount.user}`);
+    console.log(`  - Preview emails at: https://ethereal.email`);
 
-  return nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
+    return nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  } catch (error) {
+    console.warn("[EmailService] Failed to create Ethereal account:", error);
+    return null;
+  }
 }
 
 // Get or create the email transporter
-async function getTransporter(): Promise<Transporter> {
+async function getTransporter(): Promise<Transporter | null> {
+  if (emailDisabled) {
+    return null;
+  }
+
   if (transporter) {
     return transporter;
   }
@@ -51,9 +68,18 @@ async function getTransporter(): Promise<Transporter> {
       },
     });
     console.log(`[EmailService] Using SMTP server: ${SMTP_HOST}`);
-  } else {
-    // Development: use Ethereal
+  } else if (isDevelopment) {
+    // Development: try to use Ethereal
     transporter = await createDevTransporter();
+    if (!transporter) {
+      console.warn("[EmailService] Email disabled - no transporter available");
+      emailDisabled = true;
+    }
+  } else {
+    // Production without SMTP: disable email and log warning
+    console.warn("[EmailService] SMTP not configured in production. Email sending is disabled.");
+    console.warn("[EmailService] Set SMTP_HOST, SMTP_USER, and SMTP_PASS environment variables to enable email.");
+    emailDisabled = true;
   }
 
   return transporter;
@@ -154,6 +180,12 @@ export async function sendVerificationEmail(
 
   try {
     const transport = await getTransporter();
+    if (!transport) {
+      console.log(`[EmailService] Email disabled - skipping verification email to ${email}`);
+      console.log(`[EmailService] Verification token: ${token}`);
+      return true; // Return success to not block registration
+    }
+
     const info = await transport.sendMail({
       from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to: email,
@@ -195,6 +227,12 @@ export async function sendPasswordResetEmail(
 
   try {
     const transport = await getTransporter();
+    if (!transport) {
+      console.log(`[EmailService] Email disabled - skipping password reset email to ${email}`);
+      console.log(`[EmailService] Reset token: ${token}`);
+      return true;
+    }
+
     const info = await transport.sendMail({
       from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to: email,
@@ -240,6 +278,11 @@ export async function sendWelcomeEmail(
 
   try {
     const transport = await getTransporter();
+    if (!transport) {
+      console.log(`[EmailService] Email disabled - skipping welcome email to ${email}`);
+      return true;
+    }
+
     const info = await transport.sendMail({
       from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to: email,
@@ -282,6 +325,12 @@ export async function sendOrganizationInviteEmail(
 
   try {
     const transport = await getTransporter();
+    if (!transport) {
+      console.log(`[EmailService] Email disabled - skipping organization invite email to ${email}`);
+      console.log(`[EmailService] Invite token: ${token}`);
+      return true;
+    }
+
     const info = await transport.sendMail({
       from: `"${APP_NAME}" <${EMAIL_FROM}>`,
       to: email,

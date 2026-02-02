@@ -18,6 +18,7 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  isEmailConfigured,
 } from "./email-service";
 
 const router = Router();
@@ -144,18 +145,42 @@ router.post("/register", async (req: Request, res: Response) => {
       data.lastName
     );
 
-    // Send verification email
-    await sendVerificationEmail(data.email, verifyToken, data.firstName);
+    // Check if email is configured
+    const emailEnabled = isEmailConfigured();
 
-    res.status(201).json({
-      message: "Account created! Please check your email to verify your account.",
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-    });
+    if (emailEnabled) {
+      // Send verification email
+      await sendVerificationEmail(data.email, verifyToken, data.firstName);
+      res.status(201).json({
+        message: "Account created! Please check your email to verify your account.",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      });
+    } else {
+      // Auto-verify user when email is not configured
+      await db.update(users).set({
+        emailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null,
+        updatedAt: new Date(),
+      }).where(eq(users.id, user.id));
+
+      console.log(`[Auth] Auto-verified user ${data.email} (email not configured)`);
+
+      res.status(201).json({
+        message: "Account created! You can now sign in.",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      });
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: error.errors[0].message });
