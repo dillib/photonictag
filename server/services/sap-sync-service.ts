@@ -142,7 +142,7 @@ export class SAPSyncService {
           result.recordsProcessed!++;
 
           // Map SAP material to PhotonicTag product
-          const productData = this.mapSAPToProduct(sapMaterial, connector.fieldMappings);
+          const productData = this.mapSAPToProduct(sapMaterial, connector.fieldMappings || []);
 
           // Check if product already exists (by SKU)
           const existingProducts = await productService.getAllProducts();
@@ -231,7 +231,7 @@ export class SAPSyncService {
           result.recordsProcessed!++;
 
           // Map PhotonicTag product to SAP material
-          const sapMaterial = this.mapProductToSAP(product, connector.fieldMappings);
+          const sapMaterial = this.mapProductToSAP(product, connector.fieldMappings || []);
 
           // Check if material exists in SAP (by SKU/MATNR_EXT)
           const existingMaterials = sapMockService.getMaterials({

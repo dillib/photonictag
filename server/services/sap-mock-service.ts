@@ -203,7 +203,7 @@ class SAPMockDatabase {
       "Fair Trade",
       "Carbon Neutral"
     ];
-    const selected = [];
+    const selected: string[] = [];
     const count = Math.floor(Math.random() * 3) + 1;
     for (let i = 0; i < count; i++) {
       const cert = certs[Math.floor(Math.random() * certs.length)];
@@ -443,7 +443,7 @@ export class SAPMockService {
   /**
    * Test connection to SAP system
    */
-  testConnection(): { success: boolean; systemInfo: typeof this.systemInfo } {
+  testConnection(): { success: boolean; systemInfo: { systemId: string; client: string; systemType: string; version: string; apiVersion: string; hostname: string } } {
     return {
       success: true,
       systemInfo: this.systemInfo

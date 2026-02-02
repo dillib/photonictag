@@ -27,6 +27,7 @@ import {
   type InsertDppRegionalExtension,
   type DppAiInsight,
   type InsertDppAiInsight,
+  type AIInsightType,
   type RegionCode,
   type EnterpriseConnector,
   type InsertEnterpriseConnector,
@@ -439,7 +440,7 @@ export class DatabaseStorage implements IStorage {
   async updateRegionalExtension(id: string, updates: Partial<InsertDppRegionalExtension>): Promise<DppRegionalExtension | undefined> {
     const [extension] = await db
       .update(dppRegionalExtensions)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() } as any) // Type assertion for Drizzle enum compatibility
       .where(eq(dppRegionalExtensions.id, id))
       .returning();
     return extension;
@@ -472,7 +473,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(dppAiInsights.productId, productId));
   }
 
-  async getDppAiInsightByTypeAndProduct(productId: string, insightType: string): Promise<DppAiInsight | undefined> {
+  async getDppAiInsightByTypeAndProduct(productId: string, insightType: AIInsightType): Promise<DppAiInsight | undefined> {
     const [insight] = await db
       .select()
       .from(dppAiInsights)

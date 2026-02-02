@@ -698,7 +698,7 @@ export default function SAPConnector() {
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {log.recordsCreated} created • {log.recordsUpdated} updated
-                            {log.recordsFailed > 0 && (
+                            {(log.recordsFailed ?? 0) > 0 && (
                               <span className="text-red-600"> • {log.recordsFailed} failed</span>
                             )}
                           </p>

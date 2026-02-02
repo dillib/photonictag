@@ -788,14 +788,18 @@ export async function registerRoutes(
       if (existingLead) {
         // Update existing lead with new message/metadata if provided
         const updated = await storage.updateLead(existingLead.id, {
-          ...parsed.data,
+          name: parsed.data.name,
+          message: parsed.data.message,
+          notes: parsed.data.notes,
+          company: parsed.data.company,
+          phone: parsed.data.phone,
           metadata: {
             ...(existingLead.metadata as Record<string, unknown> || {}),
             ...(parsed.data.metadata || {}),
             lastInteraction: new Date().toISOString(),
             interactionCount: ((existingLead.metadata as any)?.interactionCount || 0) + 1,
           }
-        });
+        } as any); // Type assertion for metadata compatibility
         return res.json({ success: true, message: "Lead updated", lead: updated, isNew: false });
       }
 
