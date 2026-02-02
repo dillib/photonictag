@@ -58,27 +58,27 @@ const enterpriseLogos = [
   "AutoParts Pro", "SmartHome Inc", "PackagingPlus"
 ];
 
-// Key benefits (brief)
+// Key benefits (brief) - SAP-first ordering
 const keyBenefits = [
   {
-    icon: QrCode,
-    title: "Digital Passports",
-    description: "Unique QR codes for every product with full lifecycle data"
+    icon: BarChart3,
+    title: "SAP S/4HANA Integration",
+    description: "Native connector syncs product master data, BOMs, and sustainability metrics automatically"
   },
   {
     icon: Shield,
-    title: "Anti-Counterfeit",
-    description: "Tamper-proof verification consumers can trust"
+    title: "EU Compliance Guaranteed",
+    description: "Pre-built templates for Battery Regulation, ESPR, PPWR — always up to date"
   },
   {
     icon: Leaf,
-    title: "Sustainability",
-    description: "Carbon footprint, recyclability, and material tracking"
+    title: "Sustainability Tracking",
+    description: "Carbon footprint, recyclability, and circularity data from your existing SAP systems"
   },
   {
-    icon: BarChart3,
-    title: "SAP Integration",
-    description: "Native sync with SAP S/4HANA and other ERPs"
+    icon: QrCode,
+    title: "Consumer Transparency",
+    description: "Tamper-proof QR codes link to verified product data — build trust at scale"
   }
 ];
 
@@ -105,13 +105,13 @@ export default function Landing() {
       
       if (response.ok) {
         toast({
-          title: "You're on the list! 🎉",
-          description: "We'll reach out shortly to set up your free trial.",
+          title: "Demo request received! 🎉",
+          description: "Our team will reach out within 24 hours to schedule your technical walkthrough.",
         });
         setEmail("");
-        // Optional: also redirect to registration
+        // Redirect to contact page instead of registration
         setTimeout(() => {
-          window.location.href = `/auth/register?email=${encodeURIComponent(email)}`;
+          window.location.href = `/contact?email=${encodeURIComponent(email)}&source=demo_request`;
         }, 1500);
       } else {
         throw new Error("Failed to submit");
@@ -133,11 +133,11 @@ export default function Landing() {
       <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white py-2 px-4 text-center text-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-wrap">
           <AlertTriangle className="w-4 h-4" />
-          <span className="font-medium">EU Battery Passport Deadline: February 2027</span>
+          <span className="font-medium">EU Battery Passport Mandatory: Feb 18, 2027</span>
           <span className="hidden sm:inline">—</span>
-          <span className="hidden sm:inline">Start your compliance journey today</span>
+          <span className="hidden sm:inline">Non-compliance = €10M+ fines or 5% global revenue</span>
           <Link href="/eu-dpp-guide" className="underline font-semibold hover:no-underline ml-1">
-            Learn more →
+            See timeline →
           </Link>
         </div>
       </div>
@@ -164,13 +164,12 @@ export default function Landing() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-              Digital Product Passports{" "}
-              <span className="text-primary">Made Simple</span>
+              The Only Digital Product Passport Platform{" "}
+              <span className="text-primary">Built for SAP S/4HANA</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Create tamper-proof digital identities for every product.
-              Verify authenticity, ensure EU compliance, and build consumer trust — all with a single scan.
+              PhotonicTag connects directly to your SAP S/4HANA environment to auto-generate EU-compliant Digital Product Passports for every SKU. No manual data entry. No parallel systems. No compliance risk.
             </p>
 
             {/* Email Capture Form */}
@@ -185,19 +184,21 @@ export default function Landing() {
                 disabled={isSubmitting}
               />
               <Button type="submit" size="lg" className="h-12 px-6 whitespace-nowrap" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Start Free Trial"}
+                {isSubmitting ? "Submitting..." : "Book a Technical Demo"}
                 {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
             </form>
 
             <p className="text-sm text-muted-foreground">
-              14-day free trial • No credit card required • Setup in minutes
+              See live SAP integration • 30-minute technical walkthrough • Implementation roadmap included
             </p>
 
-            <div className="pt-2">
-              <Link href="/contact" className="text-sm text-primary hover:underline font-medium">
-                Prefer to talk first? Book a demo →
-              </Link>
+            <div className="pt-2 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+              <span>✓ 8-day avg. SAP integration</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline">✓ 2.8M+ products tracked</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline">✓ 47 countries</span>
             </div>
 
             {/* Trust Badges */}
@@ -265,10 +266,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Everything You Need for EU DPP Compliance
+              Why Fortune 500 Manufacturers Choose PhotonicTag
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              One platform. Complete compliance. Zero headaches.
+              The only DPP platform built for enterprise SAP ecosystems. Leverage what you already have.
             </p>
           </div>
 
