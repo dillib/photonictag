@@ -1,6 +1,9 @@
 // Main application entry point - imported after environment variables are loaded
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -18,15 +21,56 @@ declare module "http" {
   }
 }
 
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+    },
+  },
+}));
+
+// CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:5000"];
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" ? allowedOrigins : true,
+  credentials: true,
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/", limiter);
+
+// Stricter rate limit for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 login attempts per windowMs
+  message: { error: "Too many login attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+
 app.use(
   express.json({
+    limit: "10kb", // limit request body size
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "10kb" }));
 
 // Serve stock images from attached_assets directory
 app.use("/assets", express.static(path.resolve(process.cwd(), "attached_assets")));

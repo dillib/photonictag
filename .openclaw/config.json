@@ -1,0 +1,75 @@
+{
+  "$schema": "https://openclaw.ai/schema/config.json",
+  "project": {
+    "name": "PhotonicTag",
+    "type": "fullstack-typescript",
+    "description": "Digital Product Passport platform for EU DPP compliance"
+  },
+  "automation": {
+    "triggers": {
+      "on_push": {
+        "branches": ["main", "develop"],
+        "actions": ["type-check", "build", "deploy"]
+      },
+      "on_pr": {
+        "actions": ["type-check", "review"]
+      },
+      "on_issue": {
+        "labels": ["bug", "feature"],
+        "actions": ["analyze", "suggest-fix"]
+      }
+    },
+    "scheduled": {
+      "dependency_update": {
+        "cron": "0 9 * * 1",
+        "actions": ["npm-audit", "update-deps"]
+      },
+      "health_check": {
+        "cron": "*/15 * * * *",
+        "endpoint": "/api/health"
+      }
+    }
+  },
+  "commands": {
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "start": "npm run start",
+    "type-check": "npm run check",
+    "db-push": "npm run db:push",
+    "setup": "npm run setup"
+  },
+  "environment": {
+    "required": [
+      "DATABASE_URL",
+      "SESSION_SECRET"
+    ],
+    "optional": [
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "MICROSOFT_CLIENT_ID",
+      "MICROSOFT_CLIENT_SECRET",
+      "OPENAI_API_KEY",
+      "MASTER_ADMIN_EMAILS",
+      "ALLOWED_ORIGINS"
+    ]
+  },
+  "deployment": {
+    "platform": "railway",
+    "health_endpoint": "/api/health",
+    "build_command": "npm run build",
+    "start_command": "npm run start"
+  },
+  "code_style": {
+    "typescript": true,
+    "strict_mode": true,
+    "prefer_async_await": true,
+    "use_zod_validation": true
+  },
+  "permissions": {
+    "allow_file_changes": true,
+    "allow_git_operations": true,
+    "allow_npm_install": true,
+    "allow_deployment": false,
+    "require_approval": ["delete_files", "modify_auth", "modify_schema"]
+  }
+}

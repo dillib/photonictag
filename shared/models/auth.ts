@@ -14,7 +14,10 @@ export const sessions = pgTable(
 );
 
 // Master admin emails - these users automatically get admin privileges
-export const MASTER_ADMIN_EMAILS = ["dillib@gmail.com"];
+// Set via MASTER_ADMIN_EMAILS environment variable (comma-separated)
+export const MASTER_ADMIN_EMAILS: string[] = process.env.MASTER_ADMIN_EMAILS
+  ? process.env.MASTER_ADMIN_EMAILS.split(",").map(email => email.trim())
+  : [];
 
 // User storage table - Extended for enterprise authentication
 export const users = pgTable("users", {

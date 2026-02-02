@@ -7,14 +7,21 @@ import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-// Check if we're in local development mode (no Replit)
-const isLocalMode = !process.env.REPL_ID;
+// Check if we're in development mode
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+  // Require SESSION_SECRET in production
+  if (!isDevelopment && !process.env.SESSION_SECRET) {
+    throw new Error("SESSION_SECRET environment variable is required in production");
+  }
+
+  const sessionSecret = process.env.SESSION_SECRET || "dev-secret-change-in-production";
+
   // Use PostgreSQL session store in production
-  if (process.env.DATABASE_URL && !isLocalMode) {
+  if (process.env.DATABASE_URL && !isDevelopment) {
     const PgStore = connectPg(session);
     const sessionStore = new PgStore({
       conString: process.env.DATABASE_URL,
@@ -24,13 +31,13 @@ export function getSession() {
     });
 
     return session({
-      secret: process.env.SESSION_SECRET || "change-this-secret-in-production",
+      secret: sessionSecret,
       store: sessionStore,
       resave: false,
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: !isLocalMode,
+        secure: true,
         maxAge: sessionTtl,
         sameSite: "lax",
       },
@@ -39,7 +46,7 @@ export function getSession() {
 
   // Use memory store in development
   return session({
-    secret: process.env.SESSION_SECRET || "local-dev-secret-change-in-production",
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -54,8 +61,8 @@ export function getSession() {
 export async function setupAuth(app: Express) {
   console.log("[Auth] Setting up authentication...");
 
-  // Trust proxy for secure cookies behind reverse proxy
-  if (!isLocalMode) {
+  // Trust proxy for secure cookies behind reverse proxy (Railway, Cloudflare, etc.)
+  if (!isDevelopment) {
     app.set("trust proxy", 1);
   }
 
@@ -83,21 +90,6 @@ export async function setupAuth(app: Express) {
 
 // Middleware to require authentication
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // In local development mode, you can bypass auth or use mock user
-  if (isLocalMode && process.env.DEV_BYPASS_AUTH === "true") {
-    // Create a mock user for local development
-    if (!req.user) {
-      (req as any).user = {
-        id: "local-dev-user",
-        email: "dev@localhost",
-        firstName: "Local",
-        lastName: "Developer",
-        isAdmin: true,
-      };
-    }
-    return next();
-  }
-
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Unauthorized" });
   }

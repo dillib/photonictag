@@ -10,7 +10,7 @@ import { auditService } from "./services/audit-service";
 import { iotService } from "./services/iot-service";
 import { sapSyncService } from "./services/sap-sync-service";
 import { seedDemoData } from "./seed-demo-data";
-import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import { storage } from "./storage";
 
 export async function registerRoutes(
@@ -19,13 +19,20 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   await setupAuth(app);
-  registerAuthRoutes(); // Routes now registered via setupAuth
-  
+
+  // ==========================================
+  // HEALTH CHECK ENDPOINT (for Railway/deployment)
+  // ==========================================
+
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // ==========================================
   // PRODUCT ENDPOINTS
   // ==========================================
   
-  app.get("/api/products", async (req: Request, res: Response) => {
+  app.get("/api/products", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const products = await productService.getAllProducts();
       res.json(products);
@@ -35,7 +42,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/products/:id", async (req: Request, res: Response) => {
+  app.get("/api/products/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const product = await productService.getProduct(req.params.id);
       if (!product) {
@@ -48,7 +55,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products", async (req: Request, res: Response) => {
+  app.post("/api/products", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const parsed = insertProductSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -77,7 +84,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put("/api/products/:id", async (req: Request, res: Response) => {
+  app.put("/api/products/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const existingProduct = await productService.getProduct(req.params.id);
       if (!existingProduct) {
@@ -107,7 +114,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/products/:id", async (req: Request, res: Response) => {
+  app.delete("/api/products/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const existingProduct = await productService.getProduct(req.params.id);
       if (!existingProduct) {
@@ -132,7 +139,7 @@ export async function registerRoutes(
   // IDENTITY ENDPOINTS
   // ==========================================
   
-  app.get("/api/identities/:id", async (req: Request, res: Response) => {
+  app.get("/api/identities/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const identity = await identityService.getIdentity(req.params.id);
       if (!identity) {
@@ -145,7 +152,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/products/:productId/identity", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/identity", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const identity = await identityService.getIdentityByProductId(req.params.productId);
       if (!identity) {
@@ -158,7 +165,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/identities/validate", async (req: Request, res: Response) => {
+  app.post("/api/identities/validate", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { serialNumber } = req.body;
       const result = await identityService.validateIdentity(serialNumber);
@@ -173,7 +180,7 @@ export async function registerRoutes(
   // QR CODE ENDPOINTS
   // ==========================================
   
-  app.get("/api/products/:productId/qr", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/qr", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const qrCode = await qrService.getQRCodeByProductId(req.params.productId);
       if (!qrCode) {
@@ -186,7 +193,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products/:productId/qr/regenerate", async (req: Request, res: Response) => {
+  app.post("/api/products/:productId/qr/regenerate", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const product = await productService.getProduct(req.params.productId);
       if (!product) {
@@ -227,7 +234,7 @@ export async function registerRoutes(
   // TRACE EVENT ENDPOINTS
   // ==========================================
   
-  app.get("/api/products/:productId/trace", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/trace", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const events = await traceService.getProductTimeline(req.params.productId);
       res.json(events);
@@ -237,7 +244,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products/:productId/trace", async (req: Request, res: Response) => {
+  app.post("/api/products/:productId/trace", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { eventType, actor, location, description, metadata } = req.body;
       
@@ -261,7 +268,7 @@ export async function registerRoutes(
   // AI ENDPOINTS
   // ==========================================
   
-  app.get("/api/products/:productId/insights", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/insights", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const insights = await aiService.getInsightsByProductId(req.params.productId);
       res.json(insights);
@@ -271,7 +278,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/summarize", async (req: Request, res: Response) => {
+  app.post("/api/ai/summarize", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.body;
       const product = await productService.getProduct(productId);
@@ -288,7 +295,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/sustainability", async (req: Request, res: Response) => {
+  app.post("/api/ai/sustainability", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.body;
       const product = await productService.getProduct(productId);
@@ -305,7 +312,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/repair-summary", async (req: Request, res: Response) => {
+  app.post("/api/ai/repair-summary", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.body;
       const product = await productService.getProduct(productId);
@@ -322,7 +329,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/circularity", async (req: Request, res: Response) => {
+  app.post("/api/ai/circularity", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.body;
       const product = await productService.getProduct(productId);
@@ -339,7 +346,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/risk-assessment", async (req: Request, res: Response) => {
+  app.post("/api/ai/risk-assessment", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.body;
       const product = await productService.getProduct(productId);
@@ -360,7 +367,7 @@ export async function registerRoutes(
   // AUDIT LOG ENDPOINTS
   // ==========================================
   
-  app.get("/api/audit-logs", async (req: Request, res: Response) => {
+  app.get("/api/audit-logs", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
       const { entityType, entityId } = req.query;
       const logs = await auditService.getAuditLogs(
@@ -378,7 +385,7 @@ export async function registerRoutes(
   // IOT DEVICE ENDPOINTS
   // ==========================================
 
-  app.get("/api/iot/devices", async (req: Request, res: Response) => {
+  app.get("/api/iot/devices", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId } = req.query;
       let devices;
@@ -394,7 +401,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/iot/devices/:id", async (req: Request, res: Response) => {
+  app.get("/api/iot/devices/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const device = await iotService.getDevice(req.params.id);
       if (!device) {
@@ -496,7 +503,7 @@ export async function registerRoutes(
   // DPP REGIONAL EXTENSIONS
   // ==========================================
 
-  app.get("/api/products/:productId/regional-extensions", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/regional-extensions", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const extensions = await storage.getRegionalExtensionsByProductId(req.params.productId);
       res.json(extensions);
@@ -506,7 +513,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/products/:productId/regional-extensions/:regionCode", async (req: Request, res: Response) => {
+  app.get("/api/products/:productId/regional-extensions/:regionCode", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { productId, regionCode } = req.params;
       const extension = await storage.getRegionalExtensionByProductAndRegion(
@@ -857,7 +864,7 @@ export async function registerRoutes(
   // ADMIN/DEMO ENDPOINTS
   // ==========================================
   
-  app.post("/api/admin/seed-demo-data", async (req: Request, res: Response) => {
+  app.post("/api/admin/seed-demo-data", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
       await seedDemoData();
       res.json({ success: true, message: "Demo data seeded successfully" });
