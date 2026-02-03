@@ -1,0 +1,334 @@
+====================================================================================================
+PHOTONICTAG SALES PITCH DECK - GOOGLE SLIDES FORMAT
+Copy each slide below into a new Google Slides presentation
+====================================================================================================
+
+SLIDE 1: Title Slide
+---
+Title:
+PhotonicTag: Digital Product Passports for SAP Users
+
+Subtitle:
+Your 377-Day Compliance Countdown
+EU Battery Regulation Deadline: February 18, 2027
+
+Speaker Notes:
+Thank you for your time today. In exactly 377 days, the EU Battery Regulation mandates Digital Product Passports for every battery you manufacture or import into Europe. Companies that miss this deadline face fines up to €10 million or 5% of annual turnover. Today I'll show you how PhotonicTag can get you compliant in 8 days using data you already have in SAP.
+
+====================================================================================================
+
+SLIDE 2: The Problem - Regulatory Guillotine
+---
+Content:
+• EU Battery Regulation (2023/1542) - Mandatory DPP for all batteries >2kWh
+• Scope: Manufacturing data, material composition, carbon footprint, recycling info
+• Penalties: €10M+ fines OR 5% global revenue (whichever is higher)
+• Your Challenge: 50,000+ SKUs need passports in 377 days
+
+Visual Notes:
+Timeline with Feb 18, 2027 highlighted, icons of batteries, EU flag, gavel
+
+Speaker Notes:
+This isn't a soft deadline. Article 77 makes DPPs mandatory for market access. Without them, you cannot sell batteries in the EU - your largest market. Most companies we talk to have 20,000 to 100,000 battery SKUs that need passports. If you started building this in-house today, the typical timeline is 12-18 months. You don't have that time.
+
+====================================================================================================
+
+SLIDE 3: The Hidden Complexity - SAP Data Chaos
+---
+Content:
+• 50+ SAP Tables contain DPP-required data (MM, PP, QM, EHS modules)
+• Material master (MARA, MARC) + BOM (STPO) + Batch records (MCH1) + Quality certs (QALS)
+• The Gap: No native SAP function extracts & formats this for EU compliance
+• Your Reality: Data exists, but locked in SAP silos
+
+Visual Notes:
+SAP S/4HANA screenshot with red circles around scattered data locations
+
+Speaker Notes:
+You already have 80% of the data needed - it's in SAP. The problem? It's scattered across Material Management, Production Planning, Quality Management, and EHS modules. There's no 'Create DPP' button in SAP. Our average customer spends 200 hours just mapping where the data lives. That's before a single passport is generated.
+
+====================================================================================================
+
+SLIDE 4: The 3 Paths Forward (All Bad)
+---
+Content:
+Option 1: Build In-House
+Timeline: 12-18 months | Cost: $800K-2M | Risk: Miss deadline
+
+Option 2: Wait for SAP Module
+Timeline: Unknown (2026?) | Cost: $150K+ | Risk: Vaporware risk
+
+Option 3: Generic DPP Tool
+Timeline: 6-9 months | Cost: $400K | Risk: SAP integration hell
+
+Speaker Notes:
+Most companies explore three options. Building in-house requires ABAP developers, compliance experts, and front-end teams - 12+ months if you start today. Waiting for SAP's native module? It's rumored for late 2026, but not confirmed. Generic DPP tools like Circularise or Minespider? They don't speak SAP. You'll spend 6 months building API middleware just to connect them.
+
+====================================================================================================
+
+SLIDE 5: PhotonicTag Solution - The 4th Door
+---
+Content:
+• Native SAP S/4HANA Connector (ABAP-certified)
+• Pre-Built EU Battery Regulation Templates
+• 8-Day Implementation (vs. 12 months in-house)
+• No Middleware, No Custom Code
+
+Visual Notes:
+PhotonicTag connector graphic: SAP → PhotonicTag → DPP QR code
+
+Speaker Notes:
+We built PhotonicTag specifically for this problem. Our SAP-certified connector plugs directly into your S/4HANA system, pulls data from the exact tables the EU requires, and generates compliant digital passports in minutes. No middleware, no API development, no data migration. Your first passports go live in 8 days.
+
+====================================================================================================
+
+SLIDE 6: How It Works - 3-Step Flow
+---
+Content:
+Step 1: CONNECT (Day 1)
+Install PhotonicTag connector via SAP transport
+
+Step 2: MAP (Days 2-5)
+Auto-map SAP fields → EU data requirements (we pre-configure 90%)
+
+Step 3: GENERATE (Day 6+)
+Bulk create DPPs, assign QR codes, publish to blockchain ledger
+
+Visual Notes:
+Diagram with screenshots at each step
+
+Speaker Notes:
+The installation is a standard SAP transport - your BASIS team will be done in 2 hours. Days 2-5 are field mapping, but we've already configured 90% based on standard SAP table structures. Your team just validates material classifications and fills any compliance gaps. By day 6, you're generating passports in bulk - 10,000 SKUs per hour.
+
+====================================================================================================
+
+SLIDE 7: Live Demo - SAP to Passport in 60 Seconds
+---
+Content:
+1. SAP Material Master (MARA) - Select battery SKU "LI-ION-18650-3500"
+2. PhotonicTag Dashboard - Click "Generate DPP"
+3. Auto-populated passport with:
+   - Material composition (from BOM)
+   - Carbon footprint (from sustainability module)
+   - Manufacturing location (from MARC)
+   - Batch traceability (from MCH1)
+4. QR code generated + blockchain hash
+5. Mobile scan → Public-facing web passport
+
+Visual Notes:
+Screenshot sequence or embed video
+
+Speaker Notes:
+Let me show you a live example. Here's a lithium-ion battery SKU in SAP. I click 'Generate DPP' in PhotonicTag. Watch - it automatically pulls material composition from your bill of materials, carbon footprint from your sustainability tracking, manufacturing data from plant records. In 8 seconds, we have a compliant passport with a QR code. When a customer or regulator scans this, they see a public web page with all required EU fields. Behind the scenes, it's anchored to blockchain for immutability.
+
+====================================================================================================
+
+SLIDE 8: Compliance Coverage - Beyond Batteries
+---
+Content:
+✅ EU Battery Regulation (2023/1542) - Primary focus
+✅ CBAM (Carbon Border Adjustment) - Embedded emissions data
+✅ CSRD (Corporate Sustainability Reporting) - Scope 3 traceability
+✅ REACH/RoHS - Material declarations
+🚀 Coming Q3 2026: Electronics, textiles, packaging DPPs
+
+Speaker Notes:
+While we're laser-focused on battery compliance today, PhotonicTag's architecture covers multiple EU regulations. The carbon footprint data we extract helps with CBAM reporting. Material declarations satisfy REACH and RoHS. We're expanding to electronics and packaging DPPs in Q3 2026 - one platform for all your product compliance needs.
+
+====================================================================================================
+
+SLIDE 9: Traction - Who's Already Using PhotonicTag
+---
+Content:
+• 12 Enterprise Customers (8 in automotive/battery sector)
+• 2.4M Digital Passports Generated (last 6 months)
+• Average ROI: 6.2x in year one (vs. in-house build costs)
+• Customer Satisfaction: 4.8/5 (G2 Reviews)
+
+Testimonial 1:
+"PhotonicTag got us compliant in 11 days. Our IT team estimated 14 months to build this ourselves."
+— Director of Supply Chain, European Battery OEM (Tier-1 automotive supplier)
+
+Testimonial 2:
+"The SAP integration just works. No middleware, no data sync issues - it reads directly from our production system."
+— CIO, Industrial Battery Manufacturer ($2.3B revenue)
+
+Visual Notes:
+Customer logos (masked if needed) + metrics
+
+Speaker Notes:
+We're not a startup with a proof of concept. We have 12 paying enterprise customers, 8 of them in your industry. We've generated 2.4 million passports in the last six months alone. Our customers report an average 6x ROI compared to building in-house, and we maintain a 4.8/5 satisfaction score.
+
+====================================================================================================
+
+SLIDE 10: Security & Compliance
+---
+Content:
+🔒 SOC 2 Type II Certified (Audit completed Q4 2025)
+🇪🇺 GDPR Compliant (EU data residency available)
+🔐 SAP-Certified Integration (ABAP transport signed)
+🌐 Blockchain Anchoring (Ethereum/Polygon for immutability)
+📊 99.97% Uptime SLA (last 12 months)
+
+Visual Notes:
+Icons for certifications
+
+Speaker Notes:
+Security is non-negotiable for SAP integrations. We're SOC 2 Type II certified as of Q4 2025. We offer EU data residency to meet GDPR requirements. Our SAP connector is officially certified by SAP - it's a signed ABAP transport that passes their security standards. All passports are anchored to blockchain for tamper-proof audit trails, and we maintain 99.97% uptime.
+
+====================================================================================================
+
+SLIDE 11: Pricing - Pilot to Production
+---
+Content:
+3-MONTH PILOT: $25,000
+• 5,000 SKUs
+• 3 named users
+• SAP connector installation & mapping
+• 50 hours implementation support
+• Success metrics tracking
+
+ANNUAL PRODUCTION: $80,000-120,000
+• Unlimited SKUs
+• 10-25 users
+• Multi-plant/multi-SAP system support
+• Dedicated CSM + quarterly reviews
+• Conversion Bonus: $15K pilot credit if signed within 30 days
+
+Visual Notes:
+Two-column comparison: Pilot vs. Annual
+
+Speaker Notes:
+We start with a 3-month pilot at $25,000. This covers up to 5,000 SKUs - enough to test a full product line. You get 3 users, full SAP connector access, and 50 hours of hands-on implementation support. If the pilot succeeds and you convert to an annual contract within 30 days, we credit $15,000 toward your first year. Annual production contracts range from $80K to $120K depending on scale and multi-plant requirements.
+
+====================================================================================================
+
+SLIDE 12: Implementation Timeline - 8 Days to Compliant
+---
+Content:
+Day 1: Kickoff + SAP transport installation (2 hours)
+Days 2-3: Field mapping workshop (PhotonicTag does 90%, you validate 10%)
+Day 4: Test batch generation (100 sample passports)
+Day 5: Review & QA
+Days 6-7: Bulk generation (10K+ SKUs per hour)
+Day 8: Go-live + QR code rollout plan
+
+Post-Implementation:
+• Ongoing support: 4-hour SLA response time
+• Monthly compliance updates (as EU refines regulations)
+
+Visual Notes:
+Gantt chart or calendar view
+
+Speaker Notes:
+Here's the actual timeline. Day 1 is kickoff and installation - your BASIS admin will handle the transport in a couple hours. Days 2-3 are mapping workshops where we configure the data extraction. Day 4 we generate 100 test passports for your team to review. By day 6, we're bulk-generating thousands of passports per hour. Day 8, you're live. Post-launch, you have ongoing support and monthly compliance updates as the EU refines the regulations.
+
+====================================================================================================
+
+SLIDE 13: Team - Built by SAP + Compliance Experts
+---
+Content:
+CEO: 12 years SAP consulting (Big 4), ex-Deloitte Digital
+CTO: Former SAP PP/QM module developer (8 years at SAP Labs)
+Chief Compliance Officer: Ex-EU Parliament sustainability advisor
+Board Advisor: VP Supply Chain, Fortune 50 automotive OEM
+
+Company:
+• Founded: 2023 (18 months in market)
+• Funding: $8M Series A (led by industrial tech VC)
+• Team: 24 people (14 engineers, 6 in SAP integration)
+
+Visual Notes:
+Founder headshots + credentials
+
+Speaker Notes:
+Our CEO spent 12 years implementing SAP for Fortune 500 manufacturers. Our CTO literally built SAP modules - he was an ABAP developer at SAP Labs for 8 years. Our Chief Compliance Officer advised the EU Parliament on sustainability regulations. We're not outsiders trying to crack SAP - we're SAP insiders who saw this compliance crisis coming and built the solution.
+
+====================================================================================================
+
+SLIDE 14: Risk Comparison - Doing Nothing vs. PhotonicTag
+---
+Content:
+WITHOUT PHOTONICTAG:
+• Regulatory Penalty: €10M+ (Feb 2027)
+• Market Access: Lose EU sales (40%+ revenue?)
+• Implementation Time: 12-18 months
+• Total Cost: $800K-2M (in-house)
+• SAP Integration: 6-9 months custom dev
+• Ongoing Maintenance: 2 FTEs + vendor costs
+
+WITH PHOTONICTAG:
+• Regulatory Penalty: Compliant in 8 days
+• Market Access: Full market access
+• Implementation Time: 8 days
+• Total Cost: $25K pilot → $80-120K/yr
+• SAP Integration: Native, certified connector
+• Ongoing Maintenance: Included in SaaS
+
+Visual Notes:
+Two columns with red (Do Nothing) vs. green (PhotonicTag)
+
+Speaker Notes:
+Let's talk risk. If you do nothing, you face €10M+ fines and loss of EU market access in 377 days. Building in-house takes 12-18 months and costs $800K to $2M with ongoing maintenance. PhotonicTag gets you compliant in 8 days for a $25K pilot. The choice is: spend 6-12 months and $2M on a compliance checkbox, or spend 8 days and $25K to eliminate the risk entirely.
+
+====================================================================================================
+
+SLIDE 15: Next Steps - Let's Start Your Pilot
+---
+Content:
+OPTION 1: 3-MONTH PILOT ($25K)
+
+Timeline:
+• Week 1: Contracts + SOW
+• Week 2: Implementation (8-day sprint)
+• Weeks 3-12: Production testing + scale validation
+• Week 13: Convert to annual or part ways
+
+What We Need From You:
+1. SAP BASIS access (read-only initially)
+2. 1-2 stakeholders (Supply Chain + IT)
+3. Sample SKU list (100-500 batteries for pilot)
+
+Contact:
+• Email: sales@photonictag.com
+• Calendar: [Book 30-min technical deep-dive]
+• Next Call: Architecture review with your SAP team
+
+Speaker Notes:
+Here's what happens next. If you want to pilot, we can have contracts signed this week and start implementation next Monday. You'll be generating passports by the end of next week. All we need is read-only SAP access initially, 1-2 stakeholders to join mapping sessions, and a sample SKU list for the pilot. After 3 months, if it works - and it will - you convert to annual. If it doesn't, you walk away. Zero lock-in. Who on your team should we loop in for the technical architecture review?
+
+====================================================================================================
+
+APPENDIX: Follow-Up Assets
+---
+After this presentation, provide:
+
+✅ One-pager PDF (leave-behind summary)
+✅ Pilot Agreement Template (redlined for legal review)
+✅ SAP Technical Specs (ABAP transport details, table mappings)
+✅ Customer Reference Calls (2-3 similar companies willing to speak)
+✅ ROI Calculator (Excel model: in-house vs. PhotonicTag TCO)
+
+====================================================================================================
+
+OBJECTION HANDLING CHEAT SHEET
+For presenter reference during Q&A:
+
+Q: "Why not wait for SAP to build this?"
+A: SAP's DPP module is rumored but unconfirmed. Even if it ships in 2026, you'd still need to implement it (6-9 months). PhotonicTag works today and will integrate with SAP's future module if it arrives.
+
+Q: "We can build this in-house."
+A: Absolutely, you can. The question is: should your engineering team spend 12 months building a compliance checkbox, or should they focus on your core battery technology? PhotonicTag is a commodity solution for a commodity regulation.
+
+Q: "Too expensive."
+A: Compared to what? The EU fine for non-compliance is €10M minimum. The cost of losing EU market access for even one quarter? That's $50M+ in lost revenue. $25K is rounding error on your compliance budget.
+
+Q: "Not urgent yet - we have until 2027."
+A: You have 377 days. If you start building in-house today, you'll finish after the deadline. If SAP releases a module in late 2026, you'll have weeks to implement it. Do you want to bet your EU market access on that timeline?
+
+Q: "We need SOC 2 before we can proceed."
+A: We're SOC 2 Type II certified as of Q4 2025. I'll send the audit report today. What other security requirements do you need to satisfy?
+
+====================================================================================================
+END OF PITCH DECK
+====================================================================================================
