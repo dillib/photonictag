@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -16,13 +16,29 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
+# Install Chromium and dependencies for headless browser
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libgbm1 \
+    libasound2 \
+    libxshmfence1 \
+    wget \
+    ca-certificates \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 photonictag
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 --gid nodejs photonictag
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
@@ -44,6 +60,9 @@ EXPOSE 5000
 # Environment
 ENV NODE_ENV=production
 ENV PORT=5000
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV CHROME_BIN=/usr/bin/chromium
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
