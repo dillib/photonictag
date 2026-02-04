@@ -12,6 +12,7 @@ import { sapSyncService } from "./services/sap-sync-service";
 import { seedDemoData } from "./seed-demo-data";
 import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import passwordlessRoutes from "./auth/passwordless-routes";
+import sapMonitoringRoutes from "./routes/sap-monitoring";
 import { storage } from "./storage";
 
 export async function registerRoutes(
@@ -25,6 +26,11 @@ export async function registerRoutes(
   // PASSWORDLESS AUTHENTICATION ROUTES
   // ==========================================
   app.use("/api/auth/passwordless", passwordlessRoutes);
+
+  // ==========================================
+  // SAP MONITORING ROUTES
+  // ==========================================
+  app.use("/api/integrations/sap", sapMonitoringRoutes);
 
   // ==========================================
   // HEALTH CHECK ENDPOINT (for Railway/deployment)

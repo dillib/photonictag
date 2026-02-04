@@ -1,5 +1,6 @@
-- [x] Passwordless.dev authentication integration
-  - [x] Backend service and API routes
-  - [x] Frontend components (Login + Register)
-  - [x] Environment variables configured
-  - [x] SDK installed (server + client)
+- [ ] SAP Integration & UX Improvements
+  - [ ] Sync health monitoring with retry logic
+  - [ ] Better error handling with SAP error code mapping
+  - [ ] Real-time sync progress via WebSocket
+  - [ ] Interactive field mapping UI
+  - [ ] Dashboard metrics and charts

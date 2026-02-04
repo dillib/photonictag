@@ -36,6 +36,7 @@ import {
   type Lead,
   type InsertLead,
   type LeadStatus,
+  type ConnectorHealth,
   users,
   products,
   roles,
@@ -50,6 +51,7 @@ import {
   dppAiInsights,
   enterpriseConnectors,
   integrationSyncLogs,
+  connectorHealth,
   leads,
 } from "@shared/schema";
 
@@ -141,6 +143,11 @@ export interface IStorage {
   getSyncLogsByConnectorId(connectorId: string): Promise<IntegrationSyncLog[]>;
   createIntegrationSyncLog(log: InsertIntegrationSyncLog): Promise<IntegrationSyncLog>;
   updateIntegrationSyncLog(id: string, updates: Partial<IntegrationSyncLog>): Promise<IntegrationSyncLog | undefined>;
+
+  // Connector Health Monitoring
+  getConnectorHealth(connectorId: string): Promise<ConnectorHealth | undefined>;
+  updateConnectorHealth(connectorId: string, health: Partial<ConnectorHealth>): Promise<ConnectorHealth>;
+  getEnterpriseConnectors(): Promise<EnterpriseConnector[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -574,6 +581,38 @@ export class DatabaseStorage implements IStorage {
   async deleteLead(id: string): Promise<boolean> {
     const result = await db.delete(leads).where(eq(leads.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Connector Health Monitoring
+  async getConnectorHealth(connectorId: string): Promise<ConnectorHealth | undefined> {
+    const [health] = await db.select().from(connectorHealth).where(eq(connectorHealth.connectorId, connectorId));
+    return health;
+  }
+
+  async updateConnectorHealth(connectorId: string, health: Partial<ConnectorHealth>): Promise<ConnectorHealth> {
+    const existing = await this.getConnectorHealth(connectorId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(connectorHealth)
+        .set({ ...health, updatedAt: new Date() })
+        .where(eq(connectorHealth.connectorId, connectorId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(connectorHealth)
+        .values({
+          connectorId,
+          ...health,
+        } as typeof connectorHealth.$inferInsert)
+        .returning();
+      return created;
+    }
+  }
+
+  async getEnterpriseConnectors(): Promise<EnterpriseConnector[]> {
+    return this.getAllEnterpriseConnectors();
   }
 }
 

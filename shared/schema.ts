@@ -890,6 +890,31 @@ export type InsertIntegrationSyncLog = z.infer<typeof insertIntegrationSyncLogSc
 export type IntegrationSyncLog = typeof integrationSyncLogs.$inferSelect;
 
 // ============================================
+// CONNECTOR HEALTH MONITORING
+// ============================================
+
+export const connectorHealth = pgTable("connector_health", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  connectorId: varchar("connector_id").references(() => enterpriseConnectors.id).notNull().unique(),
+  status: text("status").$type<"healthy" | "degraded" | "unhealthy">().default("healthy").notNull(),
+  lastCheck: timestamp("last_check"),
+  error: text("error"),
+  consecutiveFailures: integer("consecutive_failures").default(0),
+  responseTime: integer("response_time"), // in milliseconds
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertConnectorHealthSchema = createInsertSchema(connectorHealth).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertConnectorHealth = z.infer<typeof insertConnectorHealthSchema>;
+export type ConnectorHealth = typeof connectorHealth.$inferSelect;
+
+// ============================================
 // LEADS (for marketing & sales)
 // ============================================
 

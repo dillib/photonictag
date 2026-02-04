@@ -49,9 +49,13 @@ const defaultFieldMappings: FieldMapping[] = [
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "active":
-      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Active</Badge>;
+    case "healthy":
+      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Healthy</Badge>;
     case "error":
+    case "unhealthy":
       return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Error</Badge>;
+    case "degraded":
+      return <Badge variant="warning" className="bg-yellow-500"><AlertCircle className="w-3 h-3 mr-1" />Degraded</Badge>;
     case "pending":
       return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
     default:
@@ -70,6 +74,12 @@ export default function SAPConnector() {
   });
 
   const sapConnector = connectors?.find(c => c.connectorType === "sap");
+
+  // Query for health status
+  const { data: healthStatus, refetch: refetchHealth } = useQuery({
+    queryKey: ["/api/integrations/sap/health"],
+    refetchInterval: 30000, // Check every 30s
+  });
 
   // Query for sync logs
   const { data: syncLogs } = useQuery<IntegrationSyncLog[]>({
@@ -251,8 +261,66 @@ export default function SAPConnector() {
             <p className="text-muted-foreground">Connect your SAP system to sync product master data</p>
           </div>
         </div>
-        {sapConnector && <StatusBadge status={sapConnector.status} />}
+        {sapConnector && <StatusBadge status={healthStatus?.overall || sapConnector.status} />}
       </div>
+
+      {healthStatus && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                System Health
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={healthStatus.overall} />
+                <span className="text-sm text-muted-foreground">
+                  Last checked: {new Date(healthStatus.lastUpdated).toLocaleTimeString()}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Response Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {healthStatus.connectors[0]?.responseTime || 0}ms
+              </div>
+              <p className="text-xs text-muted-foreground">Average API latency</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+               {healthStatus.overall === 'healthy' ? (
+                 <div className="text-green-600 flex items-center gap-2">
+                   <CheckCircle2 className="h-5 w-5" />
+                   <span>Operational</span>
+                 </div>
+               ) : (
+                 <div className="text-red-500 flex items-center gap-2">
+                   <AlertCircle className="h-5 w-5" />
+                   <span>Issues Detected</span>
+                 </div>
+               )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
