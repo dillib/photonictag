@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { sapHealthMonitor } from "../services/sap-health-monitor";
-import { requireAuth, isAdmin } from "../auth";
+import { isAuthenticated, isAdmin } from "../auth";
 import { storage } from "../storage";
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
  * GET /api/integrations/sap/health
  * Get overall SAP integration health status
  */
-router.get("/health", requireAuth, async (req: Request, res: Response) => {
+router.get("/health", isAuthenticated, async (req: Request, res: Response) => {
   try {
     const healthStatus = await sapHealthMonitor.checkAllConnections();
     res.json(healthStatus);
@@ -23,7 +23,7 @@ router.get("/health", requireAuth, async (req: Request, res: Response) => {
  * POST /api/integrations/sap/check-connection/:id
  * Force an immediate health check for a specific connector
  */
-router.post("/check-connection/:id", requireAuth, isAdmin, async (req: Request, res: Response) => {
+router.post("/check-connection/:id", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
     const connectorId = req.params.id;
     const connector = await storage.getEnterpriseConnector(connectorId);

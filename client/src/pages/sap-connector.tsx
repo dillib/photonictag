@@ -46,6 +46,21 @@ const defaultFieldMappings: FieldMapping[] = [
   { sourceField: "MEINS", targetField: "modelNumber" },
 ];
 
+interface HealthCheckResult {
+  connectorId: string;
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastCheck: string;
+  responseTime: number;
+  error?: string;
+  consecutiveFailures: number;
+}
+
+interface HealthStatusResponse {
+  overall: 'healthy' | 'degraded' | 'unhealthy';
+  connectors: HealthCheckResult[];
+  lastUpdated: string;
+}
+
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "active":
@@ -55,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
     case "unhealthy":
       return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Error</Badge>;
     case "degraded":
-      return <Badge variant="warning" className="bg-yellow-500"><AlertCircle className="w-3 h-3 mr-1" />Degraded</Badge>;
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white"><AlertCircle className="w-3 h-3 mr-1" />Degraded</Badge>;
     case "pending":
       return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
     default:
@@ -76,7 +91,7 @@ export default function SAPConnector() {
   const sapConnector = connectors?.find(c => c.connectorType === "sap");
 
   // Query for health status
-  const { data: healthStatus, refetch: refetchHealth } = useQuery({
+  const { data: healthStatus, refetch: refetchHealth } = useQuery<HealthStatusResponse>({
     queryKey: ["/api/integrations/sap/health"],
     refetchInterval: 30000, // Check every 30s
   });

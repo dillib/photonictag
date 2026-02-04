@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import { passwordlessService } from "./passwordless-service";
 import { storage } from "../storage";
-import { requireAuth } from "./middleware";
+import { isAuthenticated } from "../auth";
+import type { User } from "@shared/schema";
 
 const router = Router();
 
@@ -9,9 +10,10 @@ const router = Router();
  * POST /auth/passwordless/register-token
  * Generate a registration token for passwordless setup
  */
-router.post("/register-token", requireAuth, async (req: Request, res: Response) => {
+router.post("/register-token", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id.toString();
+    const user = req.user as User;
+    const userId = user.id;
     const { alias } = req.body;
 
     const token = await passwordlessService.generateRegistrationToken(userId, alias);
@@ -56,7 +58,7 @@ router.post("/verify", async (req: Request, res: Response) => {
     }
 
     // Find user by ID
-    const userId = parseInt(result.userId, 10);
+    const userId = result.userId;
     const user = await storage.getUser(userId);
 
     if (!user) {
@@ -67,16 +69,16 @@ router.post("/verify", async (req: Request, res: Response) => {
     }
 
     // Create session
-    req.session.userId = user.id;
-    req.session.email = user.email;
+    (req.session as any).userId = user.id;
+    (req.session as any).email = user.email;
 
     res.json({
       success: true,
       user: {
         id: user.id,
         email: user.email,
-        company: user.company,
-        role: user.role,
+        // company: user.company, // Not in schema currently
+        // role: user.role, // Not in schema currently
       },
     });
   } catch (error) {
@@ -92,9 +94,10 @@ router.post("/verify", async (req: Request, res: Response) => {
  * GET /auth/passwordless/credentials
  * List user's registered credentials
  */
-router.get("/credentials", requireAuth, async (req: Request, res: Response) => {
+router.get("/credentials", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id.toString();
+    const user = req.user as User;
+    const userId = user.id;
     const credentials = await passwordlessService.listCredentials(userId);
     
     res.json({
@@ -114,7 +117,7 @@ router.get("/credentials", requireAuth, async (req: Request, res: Response) => {
  * DELETE /auth/passwordless/credentials/:id
  * Delete a credential
  */
-router.delete("/credentials/:id", requireAuth, async (req: Request, res: Response) => {
+router.delete("/credentials/:id", isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await passwordlessService.deleteCredential(id);

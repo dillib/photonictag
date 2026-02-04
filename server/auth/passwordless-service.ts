@@ -1,9 +1,9 @@
-import { Client } from "@passwordlessdev/passwordless-nodejs";
+import { PasswordlessClient } from "@passwordlessdev/passwordless-nodejs";
 
 // Initialize Passwordless client
-const passwordlessClient = new Client(
+const passwordlessClient = new PasswordlessClient(
   process.env.PASSWORDLESS_SECRET_KEY!,
-  process.env.PASSWORDLESS_API_URL || "https://v4.passwordless.dev"
+  { baseUrl: process.env.PASSWORDLESS_API_URL || "https://v4.passwordless.dev" }
 );
 
 export interface PasswordlessRegistration {
@@ -22,12 +22,13 @@ export class PasswordlessService {
    */
   async generateRegistrationToken(userId: string, alias?: string): Promise<string> {
     try {
-      const token = await passwordlessClient.generateRegistrationToken({
+      const result = await passwordlessClient.createRegisterToken({
         userId,
         username: alias || userId,
         aliases: alias ? [alias] : undefined,
-      });
-      return token;
+        discoverable: true,
+      } as any);
+      return result.token;
     } catch (error) {
       console.error("Passwordless registration token error:", error);
       throw new Error("Failed to generate registration token");
@@ -40,6 +41,9 @@ export class PasswordlessService {
   async verifyToken(token: string): Promise<{ userId: string; success: boolean }> {
     try {
       const result = await passwordlessClient.verifyToken(token);
+      if (!result) {
+        return { userId: "", success: false };
+      }
       return {
         userId: result.userId,
         success: result.success,
@@ -55,7 +59,7 @@ export class PasswordlessService {
    */
   async deleteCredential(credentialId: string): Promise<void> {
     try {
-      await passwordlessClient.deleteCredential(credentialId);
+      await passwordlessClient.deleteCredential(Buffer.from(credentialId, 'base64'));
     } catch (error) {
       console.error("Passwordless delete credential error:", error);
       throw new Error("Failed to delete credential");

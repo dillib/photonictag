@@ -105,7 +105,8 @@ export class SAPHealthMonitor {
       const previousHealth = await storage.getConnectorHealth(connector.id);
       
       // Test connection
-      const isConnected = await sapMockService.testConnection(connector.config as any);
+      const connectionResult = sapMockService.testConnection();
+      const isConnected = connectionResult.success;
       
       const responseTime = Date.now() - startTime;
       
@@ -182,10 +183,10 @@ export class SAPHealthMonitor {
     return {
       connectorId,
       status: health.status as any,
-      lastCheck: health.lastCheck,
-      responseTime: 0, // Not stored, would need to be calculated
-      error: health.error,
-      consecutiveFailures: health.consecutiveFailures,
+      lastCheck: health.lastCheck || new Date(0),
+      responseTime: health.responseTime || 0,
+      error: health.error || undefined,
+      consecutiveFailures: health.consecutiveFailures || 0,
     };
   }
 
