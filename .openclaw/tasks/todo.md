@@ -1,0 +1,5 @@
+- [x] Passwordless.dev authentication integration
+  - [x] Backend service and API routes
+  - [x] Frontend components (Login + Register)
+  - [x] Environment variables configured
+  - [x] SDK installed (server + client)

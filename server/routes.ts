@@ -11,6 +11,7 @@ import { iotService } from "./services/iot-service";
 import { sapSyncService } from "./services/sap-sync-service";
 import { seedDemoData } from "./seed-demo-data";
 import { setupAuth, isAuthenticated, isAdmin } from "./auth";
+import passwordlessRoutes from "./auth/passwordless-routes";
 import { storage } from "./storage";
 
 export async function registerRoutes(
@@ -19,6 +20,11 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   await setupAuth(app);
+
+  // ==========================================
+  // PASSWORDLESS AUTHENTICATION ROUTES
+  // ==========================================
+  app.use("/api/auth/passwordless", passwordlessRoutes);
 
   // ==========================================
   // HEALTH CHECK ENDPOINT (for Railway/deployment)
