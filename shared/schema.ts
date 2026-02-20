@@ -164,7 +164,7 @@ export interface ServiceCenter {
 
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
+
   // === 1. PRODUCT IDENTIFICATION ===
   productName: text("product_name").notNull(),
   productCategory: text("product_category"),
@@ -175,20 +175,20 @@ export const products = pgTable("products", {
   countryOfOrigin: text("country_of_origin"),
   batchNumber: text("batch_number").notNull(),
   lotNumber: text("lot_number"),
-  
+
   // === 2. MATERIALS & COMPOSITION ===
   materials: text("materials").notNull(),
   materialBreakdown: jsonb("material_breakdown").$type<MaterialBreakdown[]>().default([]),
   recycledContentPercent: integer("recycled_content_percent"),
   recyclabilityPercent: integer("recyclability_percent"),
   hazardousMaterials: text("hazardous_materials"),
-  
+
   // === 3. ENVIRONMENTAL IMPACT ===
   carbonFootprint: integer("carbon_footprint").notNull(),
   waterUsage: integer("water_usage"),
   energyConsumption: integer("energy_consumption"),
   environmentalCertifications: jsonb("environmental_certifications").$type<string[]>().default([]),
-  
+
   // === 4. DURABILITY & REPAIRABILITY ===
   repairabilityScore: integer("repairability_score").notNull(),
   expectedLifespanYears: integer("expected_lifespan_years"),
@@ -196,22 +196,22 @@ export const products = pgTable("products", {
   repairInstructions: text("repair_instructions"),
   serviceCenters: jsonb("service_centers").$type<ServiceCenter[]>().default([]),
   warrantyInfo: text("warranty_info").notNull(),
-  
+
   // === 5. OWNERSHIP & LIFECYCLE ===
   dateOfManufacture: timestamp("date_of_manufacture"),
   dateOfFirstSale: timestamp("date_of_first_sale"),
   ownershipHistory: jsonb("ownership_history").$type<OwnershipEntry[]>().default([]),
-  
+
   // === 6. COMPLIANCE & CERTIFICATIONS ===
   ceMarking: boolean("ce_marking"),
   safetyCertifications: jsonb("safety_certifications").$type<string[]>().default([]),
-  
+
   // === 7. END-OF-LIFE & RECYCLING ===
   recyclingInstructions: text("recycling_instructions").notNull(),
   disassemblyInstructions: text("disassembly_instructions"),
   hazardWarnings: text("hazard_warnings"),
   takeBackPrograms: jsonb("take_back_programs").$type<string[]>().default([]),
-  
+
   // === SYSTEM FIELDS ===
   productImage: text("product_image"),
   qrCodeData: text("qr_code_data"),
@@ -307,7 +307,7 @@ export type QRCode = typeof qrCodes.$inferSelect;
 // TRACE EVENTS (Supply Chain)
 // ============================================
 
-export type TraceEventType = 
+export type TraceEventType =
   | "manufactured"
   | "shipped"
   | "received"
@@ -392,7 +392,7 @@ export type IoTDevice = typeof iotDevices.$inferSelect;
 // AI INSIGHTS
 // ============================================
 
-export type AIInsightType = 
+export type AIInsightType =
   | "summary"
   | "sustainability"
   | "repair"
@@ -425,7 +425,7 @@ export type AIInsight = typeof aiInsights.$inferSelect;
 // AUDIT LOGS
 // ============================================
 
-export type AuditAction = 
+export type AuditAction =
   | "create"
   | "update"
   | "delete"
@@ -990,3 +990,91 @@ export interface RiskAssessment {
   complianceIssues: string[];
   recommendations: string[];
 }
+
+// ============================================
+// INTERNAL PLATFORM MANAGEMENT (PHASE 6)
+// ============================================
+
+// 1. CRM / Account Management
+export const customerAccounts = pgTable("customer_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  industry: text("industry"),
+  status: text("status").$type<"prospect" | "active" | "churned">().default("prospect").notNull(),
+  accountTier: text("account_tier").$type<"free" | "standard" | "enterprise">().default("free").notNull(),
+  healthScore: integer("health_score").default(100), // AI derived score
+  assignedSalesId: varchar("assigned_sales_id"), // Links to user id
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertCustomerAccountSchema = createInsertSchema(customerAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CustomerAccount = typeof customerAccounts.$inferSelect;
+export type InsertCustomerAccount = z.infer<typeof insertCustomerAccountSchema>;
+
+// 2. Demo & Persona Management
+export const userPersonas = pgTable("user_personas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // e.g. "Automotive Manufacturing Exec"
+  industry: text("industry").notNull(),
+  description: text("description"),
+  templateData: jsonb("template_data").$type<Record<string, unknown>>().notNull(), // Sample products, IoT states
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export type UserPersona = typeof userPersonas.$inferSelect;
+
+export const demoInstances = pgTable("demo_instances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull(), // The dynamically created organization
+  personaId: varchar("persona_id").references(() => userPersonas.id).notNull(),
+  salesRepId: varchar("sales_rep_id").notNull(),
+  expirationDate: timestamp("expiration_date").notNull(),
+  status: text("status").$type<"active" | "expired" | "converted">().default("active").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export type DemoInstance = typeof demoInstances.$inferSelect;
+
+// 3. AI Support System
+export const supportTickets = pgTable("support_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orgId: varchar("org_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  subject: text("subject").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").$type<"low" | "medium" | "high" | "urgent">().default("medium").notNull(),
+  status: text("status").$type<"open" | "in_progress" | "resolved" | "closed">().default("open").notNull(),
+  aiTags: jsonb("ai_tags").$type<string[]>().default([]),
+  aiSummary: text("ai_summary"), // AI generated summary of the issue
+  assignedTeam: text("assigned_team"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+
+// 4. Platform Health & Metrics
+export const platformMetrics = pgTable("platform_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  metricType: text("metric_type").$type<"scan_count" | "api_latency" | "db_size" | "active_users">().notNull(),
+  value: integer("value").notNull(),
+  dimension: text("dimension"), // e.g. "org_id" or "region"
+  timestamp: timestamp("timestamp").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export type PlatformMetric = typeof platformMetrics.$inferSelect;

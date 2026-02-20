@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -37,6 +37,13 @@ import {
   type InsertLead,
   type LeadStatus,
   type ConnectorHealth,
+  type CustomerAccount,
+  type InsertCustomerAccount,
+  type UserPersona,
+  type DemoInstance,
+  type SupportTicket,
+  type InsertSupportTicket,
+  type PlatformMetric,
   users,
   products,
   roles,
@@ -53,6 +60,16 @@ import {
   integrationSyncLogs,
   connectorHealth,
   leads,
+  customerAccounts,
+  userPersonas,
+  demoInstances,
+  supportTickets,
+  platformMetrics,
+  organizations,
+  userOrganizations,
+  type Organization,
+  type InsertOrganization,
+  type OrgMemberRole,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -60,52 +77,52 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
-  
+
   // Products
   getProduct(id: string): Promise<Product | undefined>;
   getAllProducts(): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct> & { qrCodeData?: string | null }): Promise<Product | undefined>;
   deleteProduct(id: string): Promise<boolean>;
-  
+
   // Roles
   getRole(id: string): Promise<Role | undefined>;
   getRoleByName(name: string): Promise<Role | undefined>;
   createRole(role: InsertRole): Promise<Role>;
-  
+
   // Identities
   getIdentity(id: string): Promise<Identity | undefined>;
   getIdentityByProductId(productId: string): Promise<Identity | undefined>;
   getIdentityBySerialNumber(serialNumber: string): Promise<Identity | undefined>;
   createIdentity(identity: InsertIdentity): Promise<Identity>;
-  
+
   // QR Codes
   getQRCode(id: string): Promise<QRCode | undefined>;
   getQRCodeByProductId(productId: string): Promise<QRCode | undefined>;
   createQRCode(qrCode: InsertQRCode): Promise<QRCode>;
   incrementQRScanCount(id: string): Promise<QRCode | undefined>;
-  
+
   // Trace Events
   getTraceEvent(id: string): Promise<TraceEvent | undefined>;
   getTraceEventsByProductId(productId: string): Promise<TraceEvent[]>;
   createTraceEvent(event: InsertTraceEvent): Promise<TraceEvent>;
-  
+
   // AI Insights
   getAIInsight(id: string): Promise<AIInsight | undefined>;
   getAIInsightsByProductId(productId: string): Promise<AIInsight[]>;
   createAIInsight(insight: InsertAIInsight): Promise<AIInsight>;
   markInsightStale(productId: string): Promise<void>;
-  
+
   // Audit Logs
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(entityType?: string, entityId?: string): Promise<AuditLog[]>;
-  
+
   // Product Passports
   getProductPassport(id: string): Promise<ProductPassport | undefined>;
   getProductPassportByProductId(productId: string): Promise<ProductPassport | undefined>;
   createProductPassport(passport: InsertProductPassport): Promise<ProductPassport>;
   updateProductPassport(id: string, updates: Partial<InsertProductPassport>): Promise<ProductPassport | undefined>;
-  
+
   // IoT Devices
   getIoTDevice(id: string): Promise<IoTDevice | undefined>;
   getIoTDeviceByDeviceId(deviceId: string): Promise<IoTDevice | undefined>;
@@ -148,6 +165,35 @@ export interface IStorage {
   getConnectorHealth(connectorId: string): Promise<ConnectorHealth | undefined>;
   updateConnectorHealth(connectorId: string, health: Partial<ConnectorHealth>): Promise<ConnectorHealth>;
   getEnterpriseConnectors(): Promise<EnterpriseConnector[]>;
+
+  // Customer Accounts (CRM)
+  getCustomerAccount(id: string): Promise<CustomerAccount | undefined>;
+  getAllCustomerAccounts(): Promise<CustomerAccount[]>;
+  createCustomerAccount(account: InsertCustomerAccount): Promise<CustomerAccount>;
+  updateCustomerAccount(id: string, updates: Partial<CustomerAccount>): Promise<CustomerAccount | undefined>;
+
+  // Personas & Demos
+  getPersona(id: string): Promise<UserPersona | undefined>;
+  getAllPersonas(): Promise<UserPersona[]>;
+  createPersona(persona: UserPersona): Promise<UserPersona>;
+  createDemoInstance(demo: DemoInstance): Promise<DemoInstance>;
+  getDemoInstancesBySalesRep(salesRepId: string): Promise<DemoInstance[]>;
+
+  // Support Tickets
+  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
+  getSupportTicketsByOrg(orgId: string): Promise<SupportTicket[]>;
+  updateSupportTicket(id: string, updates: Partial<SupportTicket>): Promise<SupportTicket | undefined>;
+
+  // Platform Metrics
+  recordMetric(metric: Omit<PlatformMetric, 'id' | 'timestamp'>): Promise<PlatformMetric>;
+  getMetricsByType(type: PlatformMetric['metricType'], limit?: number): Promise<PlatformMetric[]>;
+
+  // Organizations
+  createOrganization(org: InsertOrganization): Promise<Organization>;
+  getOrganization(id: string): Promise<Organization | undefined>;
+  getOrganizationBySlug(slug: string): Promise<Organization | undefined>;
+  addUserToOrganization(userId: string, organizationId: string, role: OrgMemberRole): Promise<void>;
+  getUserOrganizations(userId: string): Promise<Organization[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -255,12 +301,12 @@ export class DatabaseStorage implements IStorage {
   async incrementQRScanCount(id: string): Promise<QRCode | undefined> {
     const existing = await this.getQRCode(id);
     if (!existing) return undefined;
-    
+
     const [qrCode] = await db
       .update(qrCodes)
-      .set({ 
-        scanCount: existing.scanCount + 1, 
-        lastScannedAt: new Date() 
+      .set({
+        scanCount: existing.scanCount + 1,
+        lastScannedAt: new Date()
       })
       .where(eq(qrCodes.id, id))
       .returning();
@@ -320,14 +366,14 @@ export class DatabaseStorage implements IStorage {
 
   async getAuditLogs(entityType?: string, entityId?: string): Promise<AuditLog[]> {
     const conditions = [];
-    
+
     if (entityType) {
       conditions.push(eq(auditLogs.entityType, entityType));
     }
     if (entityId) {
       conditions.push(eq(auditLogs.entityId, entityId));
     }
-    
+
     if (conditions.length > 0) {
       return db
         .select()
@@ -335,7 +381,7 @@ export class DatabaseStorage implements IStorage {
         .where(and(...conditions))
         .orderBy(desc(auditLogs.timestamp));
     }
-    
+
     return db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp));
   }
 
@@ -403,10 +449,10 @@ export class DatabaseStorage implements IStorage {
   async recordIoTReading(id: string, reading: IoTSensorReading): Promise<IoTDevice | undefined> {
     const [device] = await db
       .update(iotDevices)
-      .set({ 
-        lastReading: reading, 
+      .set({
+        lastReading: reading,
         lastSeenAt: new Date(),
-        updatedAt: new Date() 
+        updatedAt: new Date()
       })
       .where(eq(iotDevices.id, id))
       .returning();
@@ -591,7 +637,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateConnectorHealth(connectorId: string, health: Partial<ConnectorHealth>): Promise<ConnectorHealth> {
     const existing = await this.getConnectorHealth(connectorId);
-    
+
     if (existing) {
       const [updated] = await db
         .update(connectorHealth)
@@ -613,6 +659,122 @@ export class DatabaseStorage implements IStorage {
 
   async getEnterpriseConnectors(): Promise<EnterpriseConnector[]> {
     return this.getAllEnterpriseConnectors();
+  }
+
+  // Customer Accounts
+  async getCustomerAccount(id: string): Promise<CustomerAccount | undefined> {
+    const [account] = await db.select().from(customerAccounts).where(eq(customerAccounts.id, id));
+    return account;
+  }
+
+  async getAllCustomerAccounts(): Promise<CustomerAccount[]> {
+    return db.select().from(customerAccounts).orderBy(desc(customerAccounts.createdAt));
+  }
+
+  async createCustomerAccount(account: InsertCustomerAccount): Promise<CustomerAccount> {
+    const [created] = await db.insert(customerAccounts).values(account as any).returning();
+    return created;
+  }
+
+  async updateCustomerAccount(id: string, updates: Partial<CustomerAccount>): Promise<CustomerAccount | undefined> {
+    const [updated] = await db
+      .update(customerAccounts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(customerAccounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Personas & Demos
+  async getPersona(id: string): Promise<UserPersona | undefined> {
+    const [persona] = await db.select().from(userPersonas).where(eq(userPersonas.id, id));
+    return persona;
+  }
+
+  async getAllPersonas(): Promise<UserPersona[]> {
+    return db.select().from(userPersonas);
+  }
+
+  async createPersona(persona: UserPersona): Promise<UserPersona> {
+    const [created] = await db.insert(userPersonas).values(persona as any).returning();
+    return created;
+  }
+
+  async createDemoInstance(demo: DemoInstance): Promise<DemoInstance> {
+    const [created] = await db.insert(demoInstances).values(demo as any).returning();
+    return created;
+  }
+
+  async getDemoInstancesBySalesRep(salesRepId: string): Promise<DemoInstance[]> {
+    return db.select().from(demoInstances).where(eq(demoInstances.salesRepId, salesRepId));
+  }
+
+  // Support Tickets
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    const [created] = await db.insert(supportTickets).values(ticket as any).returning();
+    return created;
+  }
+
+  async getSupportTicketsByOrg(orgId: string): Promise<SupportTicket[]> {
+    return db.select().from(supportTickets).where(eq(supportTickets.orgId, orgId)).orderBy(desc(supportTickets.createdAt));
+  }
+
+  async updateSupportTicket(id: string, updates: Partial<SupportTicket>): Promise<SupportTicket | undefined> {
+    const [updated] = await db
+      .update(supportTickets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(supportTickets.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Platform Metrics
+  async recordMetric(metric: Omit<PlatformMetric, 'id' | 'timestamp'>): Promise<PlatformMetric> {
+    const [created] = await db.insert(platformMetrics).values(metric as any).returning();
+    return created;
+  }
+
+  async getMetricsByType(metricType: PlatformMetric['metricType'], limit = 100): Promise<PlatformMetric[]> {
+    return db
+      .select()
+      .from(platformMetrics)
+      .where(eq(platformMetrics.metricType, metricType))
+      .orderBy(desc(platformMetrics.timestamp))
+      .limit(limit);
+  }
+
+  // Organizations
+  async createOrganization(org: InsertOrganization): Promise<Organization> {
+    const [created] = await db.insert(organizations).values(org as any).returning();
+    return created;
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+    return org;
+  }
+
+  async getOrganizationBySlug(slug: string): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.slug, slug));
+    return org;
+  }
+
+  async addUserToOrganization(userId: string, organizationId: string, role: OrgMemberRole): Promise<void> {
+    await db.insert(userOrganizations).values({ userId, organizationId, role });
+  }
+
+  async getUserOrganizations(userId: string): Promise<Organization[]> {
+    const memberships = await db
+      .select()
+      .from(userOrganizations)
+      .where(eq(userOrganizations.userId, userId));
+
+    if (memberships.length === 0) return [];
+
+    return db
+      .select()
+      .from(organizations)
+      .where(sql`${organizations.id} IN (${sql.join(memberships.map(m => m.organizationId), sql`, `)})`);
   }
 }
 

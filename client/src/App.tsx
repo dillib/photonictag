@@ -33,6 +33,8 @@ import Solution from "@/pages/solution";
 import DemoGallery from "@/pages/demo-gallery";
 import NotFound from "@/pages/not-found";
 import LeadsPage from "@/pages/admin/leads";
+import InternalDashboard from "@/pages/internal-dashboard";
+import SupportInternal from "@/pages/internal-support";
 // Auth pages
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
@@ -129,6 +131,16 @@ function Router() {
       <Route path="/leads">
         <ProtectedRoute>
           <LeadsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/internal">
+        <ProtectedRoute>
+          <InternalDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/support">
+        <ProtectedRoute>
+          <SupportInternal />
         </ProtectedRoute>
       </Route>
       <Route path="/product/:id">

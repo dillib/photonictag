@@ -13,12 +13,20 @@
  * - Error handling and retry logic
  */
 
-import { sapMockService, type SAPMaterial } from './sap-mock-service';
+import { mockSapClient } from './sap/mock-client';
+import type { ISapClient } from './sap/client-interface';
+import {
+  PLANT_MAP,
+  CATEGORY_MAP,
+  getPlantCode,
+  reverseMapCategory
+} from '../config/sap-mappings';
 import { productService } from './product-service';
 import { identityService } from './identity-service';
 import { qrService } from './qr-service';
 import { traceService } from './trace-service';
 import { storage } from '../storage';
+import { SAPMaterial } from './sap/types';
 import type {
   Product,
   InsertProduct,
@@ -62,6 +70,11 @@ export interface ConflictResolution {
  * SAP Sync Engine
  */
 export class SAPSyncService {
+  private sapClient: ISapClient;
+
+  constructor(sapClient: ISapClient = mockSapClient) {
+    this.sapClient = sapClient;
+  }
   /**
    * Execute sync based on connector configuration
    */
@@ -128,11 +141,15 @@ export class SAPSyncService {
     };
 
     try {
-      // Fetch materials from SAP (using mock service for demo)
-      const sapResponse = sapMockService.getMaterials({
+      // Fetch materials from SAP (using injected client)
+      const sapResponse = await this.sapClient.getMaterials({
         $top: options.batchSize || 100,
         $filter: options.filter
       });
+
+      if ('error' in sapResponse) {
+        throw new Error(`SAP Error: ${sapResponse.error.message.value}`);
+      }
 
       const materials = sapResponse.d.results;
 
@@ -146,7 +163,7 @@ export class SAPSyncService {
 
           // Check if product already exists (by SKU)
           const existingProducts = await productService.getAllProducts();
-          const existingProduct = existingProducts.find(p => p.sku === productData.sku);
+          const existingProduct = existingProducts.find((p: Product) => p.sku === productData.sku);
 
           if (existingProduct) {
             // Update existing product
@@ -234,22 +251,26 @@ export class SAPSyncService {
           const sapMaterial = this.mapProductToSAP(product, connector.fieldMappings || []);
 
           // Check if material exists in SAP (by SKU/MATNR_EXT)
-          const existingMaterials = sapMockService.getMaterials({
+          const existingResponse = await this.sapClient.getMaterials({
             $filter: `MATNR_EXT eq '${product.sku}'`
           });
 
-          const existingMaterial = existingMaterials.d.results[0];
+          if ('error' in existingResponse) {
+            throw new Error(`SAP Error: ${existingResponse.error.message.value}`);
+          }
+
+          const existingMaterial = existingResponse.d.results[0];
 
           if (existingMaterial) {
             // Update existing SAP material
             if (!options.dryRun) {
-              sapMockService.updateMaterial(existingMaterial.MATNR, sapMaterial);
+              await this.sapClient.updateMaterial(existingMaterial.MATNR, sapMaterial);
               result.recordsUpdated!++;
             }
           } else {
             // Create new SAP material
             if (!options.dryRun) {
-              sapMockService.createMaterial(sapMaterial);
+              await this.sapClient.createMaterial(sapMaterial);
               result.recordsCreated!++;
             }
           }
@@ -278,14 +299,13 @@ export class SAPSyncService {
     sapMaterial: SAPMaterial,
     fieldMappings: FieldMapping[]
   ): InsertProduct {
-    // Default mapping based on standard SAP fields
     const defaultMapping: Partial<InsertProduct> = {
       productName: sapMaterial.MAKTX || 'Unnamed Product',
       sku: sapMaterial.MATNR_EXT || sapMaterial.MATNR,
-      manufacturer: this.getPlantName(sapMaterial.WERKS),
+      manufacturer: PLANT_MAP[sapMaterial.WERKS] || `Plant ${sapMaterial.WERKS}`,
       batchNumber: sapMaterial.CHARG || 'UNKNOWN',
       modelNumber: sapMaterial.MEINS,
-      productCategory: this.mapMaterialGroup(sapMaterial.MATKL),
+      productCategory: CATEGORY_MAP[sapMaterial.MATKL] || 'General',
       materials: this.extractMaterials(sapMaterial),
       carbonFootprint: sapMaterial.ZZCARBON || 0,
       recyclabilityPercent: sapMaterial.ZZRECYCLE || 0,
@@ -337,9 +357,9 @@ export class SAPSyncService {
     return {
       MATNR_EXT: product.sku || `PT-${product.id.slice(-8)}`,
       MAKTX: product.productName,
-      MATKL: this.reverseMapCategory(product.productCategory),
+      MATKL: reverseMapCategory(product.productCategory),
       MEINS: product.modelNumber || 'EA',
-      WERKS: this.getPlantCode(product.manufacturer),
+      WERKS: getPlantCode(product.manufacturer),
       CHARG: product.batchNumber,
       ZZCARBON: product.carbonFootprint,
       ZZRECYCLE: product.recyclabilityPercent || 0,
@@ -409,70 +429,7 @@ export class SAPSyncService {
 
   // Helper methods
 
-  private getPlantName(plantCode: string): string {
-    const plantMap: Record<string, string> = {
-      '1000': 'EV Manufacturing GmbH',
-      '1010': 'EV Assembly Inc.',
-      '2000': 'Battery Systems Ltd.',
-      '2010': 'Advanced Energy Solutions',
-      '3000': 'Electronics Corp.',
-      '3010': 'Tech Manufacturing',
-      '4000': 'Sustainable Textiles',
-      '4010': 'Eco Fashion Group',
-      '5000': 'Organic Foods Ltd.',
-      '5010': 'Fair Trade Suppliers',
-      '6000': 'Pharma Manufacturing',
-      '6010': 'MedTech Solutions',
-      '7000': 'Green Chemicals Inc.',
-      '7010': 'Sustainable Materials',
-      '8000': 'Auto Parts International',
-      '8010': 'Precision Components'
-    };
-
-    return plantMap[plantCode] || `Plant ${plantCode}`;
-  }
-
-  private getPlantCode(manufacturerName: string): string {
-    // Reverse lookup
-    if (manufacturerName.includes('EV')) return '1000';
-    if (manufacturerName.includes('Battery')) return '2000';
-    if (manufacturerName.includes('Electron')) return '3000';
-    if (manufacturerName.includes('Textile') || manufacturerName.includes('Fashion')) return '4000';
-    if (manufacturerName.includes('Food')) return '5000';
-    if (manufacturerName.includes('Pharma')) return '6000';
-    if (manufacturerName.includes('Chemical')) return '7000';
-    if (manufacturerName.includes('Auto')) return '8000';
-    return '9999';
-  }
-
-  private mapMaterialGroup(matkl: string): string {
-    const categoryMap: Record<string, string> = {
-      'EV': 'Electric Vehicles',
-      'BAT': 'Batteries',
-      'ELEC': 'Electronics',
-      'FASH': 'Fashion & Textiles',
-      'FOOD': 'Food & Beverage',
-      'PHARM': 'Pharmaceuticals',
-      'CHEM': 'Chemicals',
-      'AUTO': 'Automotive Parts'
-    };
-
-    return categoryMap[matkl] || 'General';
-  }
-
-  private reverseMapCategory(category: string | null): string {
-    if (!category) return 'GEN';
-
-    if (category.includes('Electric') || category.includes('EV')) return 'EV';
-    if (category.includes('Batter')) return 'BAT';
-    if (category.includes('Electron')) return 'ELEC';
-    if (category.includes('Fashion') || category.includes('Textile')) return 'FASH';
-    if (category.includes('Food')) return 'FOOD';
-    if (category.includes('Pharma')) return 'PHARM';
-    if (category.includes('Chem')) return 'CHEM';
-    if (category.includes('Auto')) return 'AUTO';
-    return 'GEN';
-  }
+  // Helper methods removed (moved to config/sap-mappings.ts)
 
   private extractMaterials(sapMaterial: SAPMaterial): string {
     // Extract material info from SAP fields
@@ -542,8 +499,15 @@ export class SAPSyncService {
         };
       }
 
-      // Test connection to SAP (using mock service)
-      const connectionTest = sapMockService.testConnection();
+      // Test connection to SAP (using injected client)
+      const connectionTest = await this.sapClient.testConnection();
+
+      if (!connectionTest.success) {
+        return {
+          success: false,
+          message: connectionTest.message || 'Connection failed'
+        };
+      }
 
       return {
         success: true,
