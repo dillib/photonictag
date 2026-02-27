@@ -12,6 +12,7 @@ import { storage } from "./storage";
 import { seedDemoData } from "./seed-demo-data";
 import { seedDefaultUsers } from "./seed-users";
 import { initializeDatabase } from "./init-db";
+import { runMigrations } from "./migrate";
 
 const app = express();
 const httpServer = createServer(app);
@@ -75,6 +76,7 @@ app.use((req, res, next) => {
 (async () => {
   // Initialize database (create if doesn't exist)
   try {
+    await runMigrations(); // Run schema migrations first
     await initializeDatabase();
     await seedDefaultUsers(); // Seed users after DB init
   } catch (error) {
