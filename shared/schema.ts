@@ -164,6 +164,7 @@ export interface ServiceCenter {
 
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id),
 
   // === 1. PRODUCT IDENTIFICATION ===
   productName: text("product_name").notNull(),
@@ -439,6 +440,7 @@ export interface IoTSensorReading {
 
 export const iotDevices = pgTable("iot_devices", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id),
   productId: varchar("product_id").references(() => products.id).notNull(),
   deviceType: text("device_type").$type<IoTDeviceType>().notNull(),
   deviceId: text("device_id").notNull().unique(),
@@ -511,6 +513,7 @@ export type AuditAction =
 
 export const auditLogs = pgTable("audit_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id),
   userId: varchar("user_id").references(() => users.id),
   action: text("action").$type<AuditAction>().notNull(),
   entityType: text("entity_type").notNull(),

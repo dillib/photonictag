@@ -4,8 +4,8 @@ import passport from "passport";
 import connectPg from "connect-pg-simple";
 import authRouter, { initializeAuthStrategies } from "./routes";
 import { db } from "../db";
-import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { users, userOrganizations } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 // Check if we're in development mode
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -120,6 +120,38 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
   if (!user.isAdmin) {
     return res.status(403).json({ message: "Admin access required" });
   }
+
+  next();
+};
+
+// Middleware to require specific organization tenant access
+export const requireOrg = async (req: any, res: any, next: any) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = req.user as any;
+  // If no org header is provided, we can maybe default to their first org?
+  // But for strictest API design, we should require "x-org-id" or similar.
+  // For now, let's just assert they belong to *some* organization, or a specific one passed via params.
+  const targetOrgId = req.headers["x-org-id"] || req.params.orgId;
+
+  if (!targetOrgId) {
+    return res.status(400).json({ message: "Missing x-org-id header or orgId parameter" });
+  }
+
+  const [membership] = await db.select()
+    .from(userOrganizations)
+    .where(and(eq(userOrganizations.userId, user.id), eq(userOrganizations.organizationId, targetOrgId as string)));
+
+  if (!membership && !user.isAdmin) {
+    // Note: SUPER_ADMIN (user.isAdmin = true) can bypass this block.
+    return res.status(403).json({ message: "Forbidden: You do not have access to this organization" });
+  }
+
+  // Attach org membership info to request context
+  req.orgMembership = membership;
+  req.currentOrgId = targetOrgId;
 
   next();
 };

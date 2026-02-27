@@ -34,7 +34,7 @@ const ResetPasswordPage = React.lazy(() => import("@/pages/auth/reset-password")
 const VerifyEmailPage = React.lazy(() => import("@/pages/auth/verify-email"));
 
 // ... AdminLayout and ProtectedRoute remain unchanged ...
-function AdminLayout({ children }: { children: React.ReactNode }) {
+function CustomerLayout({ children }: { children: React.ReactNode }) {
   const style = {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
@@ -47,6 +47,36 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col flex-1 overflow-hidden">
           <header className="flex h-14 items-center justify-between gap-4 border-b px-4 shrink-0">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <ThemeToggle />
+          </header>
+          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+              {children}
+            </Suspense>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+
+function PlatformLayout({ children }: { children: React.ReactNode }) {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
+  return (
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 border-l-4 border-indigo-500">
+        {/* We can place a PlatformSidebar here later, for now reuse AppSidebar */}
+        <AppSidebar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <header className="flex h-14 items-center justify-between gap-4 border-b border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 px-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <span className="font-semibold text-indigo-700 dark:text-indigo-300">Platform Administration</span>
+            </div>
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
@@ -81,7 +111,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Landing />;
   }
 
-  return <AdminLayout>{children}</AdminLayout>;
+  if (location.startsWith("/admin")) {
+    return <PlatformLayout>{children}</PlatformLayout>;
+  }
+
+  return <CustomerLayout>{children}</CustomerLayout>;
 }
 
 function Router() {
