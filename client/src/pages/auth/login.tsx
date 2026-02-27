@@ -3,7 +3,7 @@ import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthCard } from "@/components/auth/auth-card";
 import { SSOButtons, SSODivider } from "@/components/auth/sso-buttons";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -46,6 +46,7 @@ export default function LoginPage({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { user, isLoading: isAuthLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   // Check URL params for messages
   useEffect(() => {
@@ -77,9 +78,9 @@ export default function LoginPage({
   // Redirect if already logged in
   useEffect(() => {
     if (!isAuthLoading && user) {
-      setLocation("/");
+      setLocation(redirectUrl);
     }
-  }, [user, isAuthLoading, setLocation]);
+  }, [user, isAuthLoading, setLocation, redirectUrl]);
 
   // Fetch auth config
   const { data: authConfig } = useQuery<AuthConfig>({
@@ -113,7 +114,8 @@ export default function LoginPage({
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(["/api/auth/user"], data.user);
       setLocation(redirectUrl);
     },
     onError: (error: Error) => {
