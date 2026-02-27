@@ -44,6 +44,7 @@ RUN useradd --system --uid 1001 --gid nodejs photonictag
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/attached_assets ./attached_assets
+COPY --from=builder /app/migrations ./migrations
 
 # Install production dependencies only
 RUN npm ci --only=production && npm cache clean --force
