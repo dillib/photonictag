@@ -151,7 +151,33 @@ function Router() {
         <Route path="/landing" component={Landing} />
         <Route path="/integrations" component={Integrations} />
         {/* Auth routes */}
-        <Route path="/auth/login" component={LoginPage} />
+        <Route path="/admin/login">
+          <LoginPage
+            title="Platform Admin Login"
+            subtitle="Sign in to the administration portal"
+            defaultEmail="admin@photonictag.com"
+            redirectUrl="/admin/internal"
+          />
+        </Route>
+        <Route path="/crm/login">
+          <LoginPage
+            title="CRM Login"
+            subtitle="Sign in to the partner and sales CRM"
+            defaultEmail="demo@photonictag.com"
+            redirectUrl="/leads"
+          />
+        </Route>
+        <Route path="/demo/login">
+          <LoginPage
+            title="Demo Login"
+            subtitle="Sign in to the demonstration environment"
+            defaultEmail="demo@photonictag.com"
+            redirectUrl="/"
+          />
+        </Route>
+        <Route path="/auth/login">
+          <LoginPage />
+        </Route>
         <Route path="/auth/register" component={RegisterPage} />
         <Route path="/auth/forgot-password" component={ForgotPasswordPage} />
         <Route path="/auth/reset-password" component={ResetPasswordPage} />

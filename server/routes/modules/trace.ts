@@ -2,7 +2,6 @@
 import { Router, Request, Response } from "express";
 import { traceService } from "../../services/trace-service";
 import { auditService } from "../../services/audit-service";
-import { searchService } from "../../services/search-service";
 import { isAuthenticated, isAdmin } from "../../auth";
 
 const router = Router();

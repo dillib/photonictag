@@ -29,7 +29,19 @@ interface AuthConfig {
   };
 }
 
-export default function LoginPage() {
+interface LoginPageProps {
+  title?: string;
+  subtitle?: string;
+  defaultEmail?: string;
+  redirectUrl?: string;
+}
+
+export default function LoginPage({
+  title = "Welcome back",
+  subtitle = "Sign in to your account to continue",
+  defaultEmail = "",
+  redirectUrl = "/"
+}: LoginPageProps) {
   const [, setLocation] = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -80,6 +92,9 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: defaultEmail,
+    }
   });
 
   const loginMutation = useMutation({
@@ -99,7 +114,7 @@ export default function LoginPage() {
       return response.json();
     },
     onSuccess: () => {
-      setLocation("/");
+      setLocation(redirectUrl);
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -122,8 +137,8 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Welcome back"
-      description="Sign in to your account to continue"
+      title={title}
+      description={subtitle}
       footer={
         <p>
           Don't have an account?{" "}

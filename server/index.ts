@@ -10,6 +10,7 @@ import { createServer } from "http";
 import { setupEventHandlers } from "./events/handlers";
 import { storage } from "./storage";
 import { seedDemoData } from "./seed-demo-data";
+import { seedDefaultUsers } from "./seed-users";
 import { initializeDatabase } from "./init-db";
 
 const app = express();
@@ -75,6 +76,7 @@ app.use((req, res, next) => {
   // Initialize database (create if doesn't exist)
   try {
     await initializeDatabase();
+    await seedDefaultUsers(); // Seed users after DB init
   } catch (error) {
     log(`Failed to initialize database: ${error}`);
     log("Please ensure PostgreSQL is running and the credentials are correct.");
