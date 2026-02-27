@@ -78,9 +78,8 @@ app.use((req, res, next) => {
     await initializeDatabase();
     await seedDefaultUsers(); // Seed users after DB init
   } catch (error) {
-    log(`Failed to initialize database: ${error}`);
-    log("Please ensure PostgreSQL is running and the credentials are correct.");
-    process.exit(1);
+    log(`[INIT ERROR] Failed to initialize database: ${error}`);
+    log("Continuing startup even though DB is unreachable to allow diagnostics...");
   }
 
   setupEventHandlers();

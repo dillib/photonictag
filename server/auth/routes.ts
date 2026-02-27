@@ -204,7 +204,7 @@ router.post("/login", (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate("local", (err: Error, user: any, info: any) => {
     if (err) {
       console.error("[Auth] Login error:", err);
-      return res.status(500).json({ message: "An error occurred during login" });
+      return res.status(500).json({ message: `An error occurred during login: ${err.message}` });
     }
 
     if (!user) {
