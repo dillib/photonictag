@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import passport from "passport";
+import crypto from "crypto";
 import { z } from "zod";
 import { db } from "../db";
 import { users, oauthAccounts } from "@shared/schema";
