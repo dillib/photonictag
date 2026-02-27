@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -10,38 +11,29 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import Landing from "@/pages/landing";
-import Dashboard from "@/pages/dashboard";
-import Products from "@/pages/products";
-import ProductForm from "@/pages/product-form";
-import ProductDetail from "@/pages/product-detail";
-import IoTDevices from "@/pages/iot-devices";
-import SAPConnector from "@/pages/sap-connector";
-import PublicScan from "@/pages/public-scan";
-import Pricing from "@/pages/pricing";
-import Integrations from "@/pages/integrations";
-import Docs from "@/pages/docs";
-import Blog from "@/pages/blog";
-import CaseStudies from "@/pages/case-studies";
-import UseCases from "@/pages/use-cases";
-import EuDppGuide from "@/pages/eu-dpp-guide";
-import Careers from "@/pages/careers";
-import Contact from "@/pages/contact";
-import Privacy from "@/pages/privacy";
-import Terms from "@/pages/terms";
-import Solution from "@/pages/solution";
-import DemoGallery from "@/pages/demo-gallery";
-import NotFound from "@/pages/not-found";
-import LeadsPage from "@/pages/admin/leads";
-import InternalDashboard from "@/pages/internal-dashboard";
-import SupportInternal from "@/pages/internal-support";
-// Auth pages
-import LoginPage from "@/pages/auth/login";
-import RegisterPage from "@/pages/auth/register";
-import ForgotPasswordPage from "@/pages/auth/forgot-password";
-import ResetPasswordPage from "@/pages/auth/reset-password";
-import VerifyEmailPage from "@/pages/auth/verify-email";
 
+const Landing = React.lazy(() => import("@/pages/landing"));
+const Dashboard = React.lazy(() => import("@/pages/dashboard"));
+const Products = React.lazy(() => import("@/pages/products"));
+const ProductForm = React.lazy(() => import("@/pages/product-form"));
+const ProductDetail = React.lazy(() => import("@/pages/product-detail"));
+const IoTDevices = React.lazy(() => import("@/pages/iot-devices"));
+const SAPConnector = React.lazy(() => import("@/pages/sap-connector"));
+const PublicScan = React.lazy(() => import("@/pages/public-scan"));
+const Integrations = React.lazy(() => import("@/pages/integrations"));
+const NotFound = React.lazy(() => import("@/pages/not-found"));
+const LeadsPage = React.lazy(() => import("@/pages/admin/leads"));
+const InternalDashboard = React.lazy(() => import("@/pages/internal-dashboard"));
+const SupportInternal = React.lazy(() => import("@/pages/internal-support"));
+
+// Auth pages
+const LoginPage = React.lazy(() => import("@/pages/auth/login"));
+const RegisterPage = React.lazy(() => import("@/pages/auth/register"));
+const ForgotPasswordPage = React.lazy(() => import("@/pages/auth/forgot-password"));
+const ResetPasswordPage = React.lazy(() => import("@/pages/auth/reset-password"));
+const VerifyEmailPage = React.lazy(() => import("@/pages/auth/verify-email"));
+
+// ... AdminLayout and ProtectedRoute remain unchanged ...
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const style = {
     "--sidebar-width": "16rem",
@@ -58,7 +50,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-            {children}
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+              {children}
+            </Suspense>
           </main>
         </div>
       </div>
@@ -92,85 +86,79 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/products">
-        <ProtectedRoute>
-          <Products />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/products/new">
-        <ProtectedRoute>
-          <ProductForm />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/products/:id/edit">
-        <ProtectedRoute>
-          <ProductForm />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/products/:id">
-        <ProtectedRoute>
-          <ProductDetail />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/iot-devices">
-        <ProtectedRoute>
-          <IoTDevices />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/integrations/sap">
-        <ProtectedRoute>
-          <SAPConnector />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/leads">
-        <ProtectedRoute>
-          <LeadsPage />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/admin/internal">
-        <ProtectedRoute>
-          <InternalDashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/admin/support">
-        <ProtectedRoute>
-          <SupportInternal />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/product/:id">
-        <PublicScan />
-      </Route>
-      <Route path="/scan/demo">
-        <PublicScan isDemo />
-      </Route>
-      <Route path="/demo" component={DemoGallery} />
-      <Route path="/landing" component={Landing} />
-      <Route path="/solution" component={Solution} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/integrations" component={Integrations} />
-      <Route path="/docs" component={Docs} />
-      <Route path="/blog" component={Blog} />
-      <Route path="/case-studies" component={CaseStudies} />
-      <Route path="/use-cases" component={UseCases} />
-      <Route path="/eu-dpp-guide" component={EuDppGuide} />
-      <Route path="/careers" component={Careers} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/terms" component={Terms} />
-      {/* Auth routes */}
-      <Route path="/auth/login" component={LoginPage} />
-      <Route path="/auth/register" component={RegisterPage} />
-      <Route path="/auth/forgot-password" component={ForgotPasswordPage} />
-      <Route path="/auth/reset-password" component={ResetPasswordPage} />
-      <Route path="/auth/verify-email" component={VerifyEmailPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <Switch>
+        <Route path="/">
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/products">
+          <ProtectedRoute>
+            <Products />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/products/new">
+          <ProtectedRoute>
+            <ProductForm />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/products/:id/edit">
+          <ProtectedRoute>
+            <ProductForm />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/products/:id">
+          <ProtectedRoute>
+            <ProductDetail />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/iot-devices">
+          <ProtectedRoute>
+            <IoTDevices />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/integrations/sap">
+          <ProtectedRoute>
+            <SAPConnector />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/leads">
+          <ProtectedRoute>
+            <LeadsPage />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/internal">
+          <ProtectedRoute>
+            <InternalDashboard />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/support">
+          <ProtectedRoute>
+            <SupportInternal />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/product/:id">
+          <PublicScan />
+        </Route>
+        <Route path="/scan/demo">
+          <PublicScan isDemo />
+        </Route>
+        <Route path="/landing" component={Landing} />
+        <Route path="/integrations" component={Integrations} />
+        {/* Auth routes */}
+        <Route path="/auth/login" component={LoginPage} />
+        <Route path="/auth/register" component={RegisterPage} />
+        <Route path="/auth/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/auth/reset-password" component={ResetPasswordPage} />
+        <Route path="/auth/verify-email" component={VerifyEmailPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

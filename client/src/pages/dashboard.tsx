@@ -141,9 +141,8 @@ function StatCard({
           <div className="flex items-baseline gap-2">
             <div className="text-3xl font-bold">{value}</div>
             {trend && trendValue && (
-              <div className={`flex items-center text-xs ${
-                trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"
-              }`}>
+              <div className={`flex items-center text-xs ${trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"
+                }`}>
                 {trend === "up" ? (
                   <TrendingUp className="h-3 w-3 mr-1" />
                 ) : trend === "down" ? (
@@ -263,7 +262,7 @@ function ComplianceCard({ products }: { products: Product[] | undefined }) {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span>{compliantProducts} compliant</span>
+              <span>{compliantProducts} Biogenic matches</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
@@ -314,10 +313,10 @@ export default function Dashboard() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" data-testid="text-dashboard-title">
-            Dashboard
+            Intelligence Hub
           </h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's an overview of your Digital Product Passports.
+            Global view of your Biogenic Digital Twins and verifications.
           </p>
         </div>
         <div className="flex gap-2">
@@ -328,7 +327,7 @@ export default function Dashboard() {
           <Link href="/products/new">
             <Button data-testid="button-create-product-hero">
               <Plus className="mr-2 h-4 w-4" />
-              Create Product
+              Enroll Twin
             </Button>
           </Link>
         </div>
@@ -337,18 +336,18 @@ export default function Dashboard() {
       {/* Main Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Products"
+          title="Active Digital Twins"
           value={totalProducts}
-          subtitle="Digital Product Passports"
+          subtitle="Enrolled components"
           icon={Package}
           trend="up"
           trendValue="+12% this month"
           isLoading={isLoading}
         />
         <StatCard
-          title="Total Scans"
+          title="Total Verifications"
           value={totalScans.toLocaleString()}
-          subtitle="QR & NFC interactions"
+          subtitle="Optical & Field Scans"
           icon={Eye}
           trend="up"
           trendValue="+28% this week"
@@ -381,8 +380,8 @@ export default function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Scan Activity</CardTitle>
-                <CardDescription>Product scans over the last 7 days</CardDescription>
+                <CardTitle>Verification Activity</CardTitle>
+                <CardDescription>Optical and field scans over the last 7 days</CardDescription>
               </div>
               <Badge variant="secondary" className="text-xs">
                 <Activity className="h-3 w-3 mr-1" />
@@ -432,8 +431,8 @@ export default function Dashboard() {
         {/* Products by Category */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Products by Category</CardTitle>
-            <CardDescription>Distribution across {uniqueCategories} categories</CardDescription>
+            <CardTitle className="text-sm font-medium">Twins by Category</CardTitle>
+            <CardDescription>Distribution across {uniqueCategories} material categories</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[180px]">
@@ -497,8 +496,8 @@ export default function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Products</CardTitle>
-                <CardDescription>Your latest Digital Product Passports</CardDescription>
+                <CardTitle>Recent Enrollments</CardTitle>
+                <CardDescription>Latest Digital Twins added to the registry</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/products">
@@ -524,10 +523,10 @@ export default function Dashboard() {
             ) : products?.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No products yet</p>
+                <p className="text-muted-foreground mb-4">No Digital Twins registered yet</p>
                 <Link href="/products/new">
                   <Button variant="outline" size="sm" data-testid="button-create-first-product">
-                    Create your first product
+                    Enroll your first Twin
                   </Button>
                 </Link>
               </div>
@@ -583,8 +582,8 @@ export default function Dashboard() {
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <Plus className="h-5 w-5 text-primary" />
                   </div>
-                  <span className="font-medium">Create Product</span>
-                  <span className="text-xs text-muted-foreground">Add a new DPP</span>
+                  <span className="font-medium">Enroll Twin</span>
+                  <span className="text-xs text-muted-foreground">Add to registry</span>
                 </Button>
               </Link>
               <Link href="/integrations/sap">
@@ -592,7 +591,7 @@ export default function Dashboard() {
                   <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
                     <Plug className="h-5 w-5 text-purple-500" />
                   </div>
-                  <span className="font-medium">SAP Connector</span>
+                  <span className="font-medium">ERP Connector</span>
                   <span className="text-xs text-muted-foreground">Sync from SAP</span>
                 </Button>
               </Link>
@@ -601,8 +600,8 @@ export default function Dashboard() {
                   <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                     <Package className="h-5 w-5 text-blue-500" />
                   </div>
-                  <span className="font-medium">All Products</span>
-                  <span className="text-xs text-muted-foreground">Browse catalog</span>
+                  <span className="font-medium">Digital Twins</span>
+                  <span className="text-xs text-muted-foreground">Browse registry</span>
                 </Button>
               </Link>
               <Link href="/iot-devices">
@@ -610,8 +609,8 @@ export default function Dashboard() {
                   <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
                     <Wifi className="h-5 w-5 text-green-500" />
                   </div>
-                  <span className="font-medium">IoT Devices</span>
-                  <span className="text-xs text-muted-foreground">Manage sensors</span>
+                  <span className="font-medium">Scanners</span>
+                  <span className="text-xs text-muted-foreground">Manage hardware</span>
                 </Button>
               </Link>
             </div>

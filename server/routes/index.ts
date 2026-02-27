@@ -10,6 +10,7 @@ import dppRouter from "./modules/dpp";
 import adminRouter from "./modules/admin";
 import sapMonitoringRoutes from "./sap-monitoring";
 import internalRouter from "./internal";
+import verifyRouter from "./modules/verify";
 
 export const apiRouter = Router();
 
@@ -42,5 +43,6 @@ apiRouter.use(traceRouter);
 apiRouter.use("/leads", leadsRouter); // /api/leads
 apiRouter.use("/", dppRouter); // DPP router defines /products/:id/regional-extensions. Mount at root.
 apiRouter.use("/admin", adminRouter); // /api/admin
+apiRouter.use("/v1", verifyRouter); // /api/v1/verify
 
 export default apiRouter;

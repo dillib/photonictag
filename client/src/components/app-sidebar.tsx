@@ -3,6 +3,7 @@ import { Package, LayoutDashboard, Plus, LogOut, QrCode, Wifi, Plug, Users, Rock
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sidebar,
   SidebarContent,
@@ -18,32 +19,32 @@ import {
 
 const navigationItems = [
   {
-    title: "Dashboard",
+    title: "Intelligence Hub",
     url: "/",
     icon: LayoutDashboard,
   },
   {
-    title: "Products",
+    title: "Digital Twins",
     url: "/products",
     icon: Package,
   },
   {
-    title: "Leads",
+    title: "Audit Log",
     url: "/leads",
     icon: Users,
   },
   {
-    title: "IoT Devices",
+    title: "Sensors & Readers",
     url: "/iot-devices",
     icon: Wifi,
   },
   {
-    title: "SAP Connector",
+    title: "ERP Sync (SAP)",
     url: "/integrations/sap",
     icon: Plug,
   },
   {
-    title: "Create Product",
+    title: "Enroll Twin",
     url: "/products/new",
     icon: Plus,
   },
@@ -80,12 +81,17 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <Link href="/landing" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className="flex h-8 w-8 items-center justify-center rounded-md bg-primary shadow-sm"
+          >
             <QrCode className="h-5 w-5 text-primary-foreground" />
-          </div>
+          </motion.div>
           <div className="flex flex-col">
             <span className="text-base font-semibold tracking-tight">PhotonicTag</span>
-            <span className="text-xs text-muted-foreground">Identity, at the speed of light.</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Identity, speed of light</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -96,18 +102,31 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => {
+              {navigationItems.map((item, index) => {
                 const isActive = location === item.url ||
                   (item.url !== "/" && location.startsWith(item.url));
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild data-active={isActive}>
-                      <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s/g, '-')}`}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild data-active={isActive}>
+                        <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s/g, '-')}`}>
+                          <motion.div
+                            className="flex items-center gap-2 w-full"
+                            whileHover={{ x: 2 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          >
+                            <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+                            <span className={isActive ? 'font-medium text-foreground' : 'text-muted-foreground'}>{item.title}</span>
+                          </motion.div>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </motion.div>
                 );
               })}
             </SidebarMenu>
@@ -122,17 +141,29 @@ export function AppSidebar() {
               {[
                 { title: "Internal Hub", url: "/admin/internal", icon: Rocket },
                 { title: "AI Support", url: "/admin/support", icon: LifeBuoy },
-              ].map((item) => {
+              ].map((item, index) => {
                 const isActive = location === item.url;
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild data-active={isActive}>
-                      <Link href={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (navigationItems.length + index) * 0.05 }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild data-active={isActive}>
+                        <Link href={item.url}>
+                          <motion.div
+                            className="flex items-center gap-2 w-full"
+                            whileHover={{ x: 2 }}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </motion.div>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </motion.div>
                 );
               })}
             </SidebarMenu>
@@ -140,33 +171,41 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-4">
-        {user && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.profileImageUrl || undefined} alt={getDisplayName()} />
-                <AvatarFallback className="text-xs">{getInitials()}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{getDisplayName()}</p>
-                {user.email && (
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start gap-2"
-              onClick={() => logout()}
-              disabled={isLoggingOut}
-              data-testid="button-logout"
+        <AnimatePresence>
+          {user && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3"
             >
-              <LogOut className="h-4 w-4" />
-              <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
-            </Button>
-          </div>
-        )}
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8 border border-border shadow-sm">
+                  <AvatarImage src={user.profileImageUrl || undefined} alt={getDisplayName()} />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{getDisplayName()}</p>
+                  {user.email && (
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  )}
+                </div>
+              </div>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start gap-2 hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => logout()}
+                  disabled={isLoggingOut}
+                  data-testid="button-logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </SidebarFooter>
     </Sidebar>
   );
