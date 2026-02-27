@@ -2,78 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PHOTONICTAG DEEP SPACE DESIGN SYSTEM */
-:root, .dark {
-  --button-outline: rgba(6, 182, 212, 0.2);
-  --badge-outline: rgba(6, 182, 212, 0.15);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
-  
-  /* Backgrounds: Deep Slate & Navy */
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  
-  --card: 222 47% 14%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 222 47% 20%;
-  
-  --popover: 222 47% 14%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 222 47% 20%;
-  
-  --sidebar: 222 47% 11%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 222 47% 18%;
-  
-  /* Primary: Photonic Cyan */
-  --primary: 190 90% 50%;
-  --primary-foreground: 222 47% 11%;
-  --sidebar-primary: 190 90% 50%;
-  --sidebar-primary-foreground: 210 40% 98%;
-  
-  /* Secondary: Deep Indigo */
-  --secondary: 250 80% 65%;
-  --secondary-foreground: 210 40% 98%;
-  
-  /* Muted / Accent: Faded slate interactions */
-  --muted: 222 47% 18%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 222 47% 20%;
-  --accent-foreground: 210 40% 98%;
-  --sidebar-accent: 222 47% 18%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  
-  /* Alerts: Fraud Red */
-  --destructive: 348 80% 55%;
-  --destructive-foreground: 0 0% 100%;
-  
-  /* UI Elements */
-  --border: 222 47% 20%;
-  --input: 222 47% 20%;
-  --ring: 190 90% 50%;
-  --sidebar-ring: 190 90% 50%;
-  
-  /* Charts: Blended optical palette */
-  --chart-1: 190 90% 50%; 
-  --chart-2: 250 80% 65%;
-  --chart-3: 142 70% 50%;
-  --chart-4: 43 100% 60%;
-  --chart-5: 348 80% 55%;
-  
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Space Grotesk', monospace;
-  --radius: .5rem;
+/* APPLE HUMAN INTERFACE GUIDELINES (HIG) */
+:root {
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(190 90% 50% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(190 90% 50% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(190 90% 50% / 0.00), 0px 1px 2px -1px hsl(190 90% 50% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(190 90% 50% / 0.00), 0px 1px 2px -1px hsl(190 90% 50% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(190 90% 50% / 0.00), 0px 2px 4px -1px hsl(190 90% 50% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(190 90% 50% / 0.00), 0px 4px 6px -1px hsl(190 90% 50% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(190 90% 50% / 0.00), 0px 8px 10px -1px hsl(190 90% 50% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(190 90% 50% / 0.00);
+  /* Backgrounds: Apple Light Gray */
+  --background: 0 0% 96%;
+  /* #F5F5F7 */
+  --foreground: 0 0% 11%;
+  /* #1C1C1E */
+
+  /* Surfaces: Pure White */
+  --card: 0 0% 100%;
+  /* #FFFFFF */
+  --card-foreground: 0 0% 11%;
+  --card-border: 0 0% 92%;
+  /* Extremely subtle */
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 11%;
+  --popover-border: 0 0% 92%;
+
+  --sidebar: 0 0% 96%;
+  /* Matches background */
+  --sidebar-foreground: 0 0% 30%;
+  /* Secondary text */
+  --sidebar-border: 0 0% 90%;
+
+  /* Primary: Apple Blue */
+  --primary: 211 100% 50%;
+  /* #007AFF */
+  --primary-foreground: 0 0% 100%;
+  --sidebar-primary: 211 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  /* Secondary: Soft Gray */
+  --secondary: 0 0% 93%;
+  --secondary-foreground: 0 0% 11%;
+
+  /* Muted / Accent: Soft hover states */
+  --muted: 0 0% 93%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 0 0% 90%;
+  --accent-foreground: 0 0% 11%;
+  --sidebar-accent: 0 0% 90%;
+  --sidebar-accent-foreground: 0 0% 11%;
+
+  /* Alerts: Apple Red */
+  --destructive: 348 100% 61%;
+  /* #FF3B30 */
+  --destructive-foreground: 0 0% 100%;
+
+  /* UI Elements */
+  --border: 0 0% 90%;
+  --input: 0 0% 85%;
+  --ring: 211 100% 50%;
+  --sidebar-ring: 211 100% 50%;
+}
+
+.dark {
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.08);
+
+  /* Backgrounds: Pitch Black (OLED) */
+  --background: 0 0% 0%;
+  /* #000000 */
+  --foreground: 0 0% 100%;
+
+  /* Surfaces: Elevated Dark Gray */
+  --card: 0 0% 11%;
+  /* #1C1C1E */
+  --card-foreground: 0 0% 100%;
+  --card-border: 0 0% 18%;
+
+  --popover: 0 0% 11%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 0 0% 18%;
+
+  --sidebar: 0 0% 0%;
+  /* Matches background */
+  --sidebar-foreground: 0 0% 70%;
+  --sidebar-border: 0 0% 15%;
+
+  /* Primary: Lighter Apple Blue for Dark Mode */
+  --primary: 212 100% 58%;
+  /* #2997FF */
+  --primary-foreground: 0 0% 100%;
+  --sidebar-primary: 212 100% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  /* Secondary */
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Muted / Accent */
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 0 0% 18%;
+  --accent-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 18%;
+  --sidebar-accent-foreground: 0 0% 100%;
+
+  /* Alerts: Dark Mode Apple Red */
+  --destructive: 348 100% 65%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* UI Elements */
+  --border: 0 0% 18%;
+  --input: 0 0% 25%;
+  --ring: 212 100% 58%;
+  --sidebar-ring: 212 100% 58%;
+}
+
+:root {
+  /* Charts */
+  --chart-1: 211 100% 50%;
+  /* Blue */
+  --chart-2: 120 100% 36%;
+  /* Green #34C759 */
+  --chart-3: 31 100% 54%;
+  /* Orange #FF9500 */
+  --chart-4: 310 100% 61%;
+  /* Pink #FF2D55 */
+  --chart-5: 260 100% 65%;
+  /* Purple #AF52DE */
+
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --radius: 1rem;
+  /* Much rounder for Apple (16px) */
+
+  /* Smooth macOS-like shadows */
+  --shadow-2xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.15);
 
   /* Fallbacks for older browsers */
   --sidebar-primary-border: hsl(var(--sidebar-primary));

@@ -104,24 +104,24 @@ export default function InternalDashboard() {
                         {/* Add more metric cards here */}
                     </div>
 
-                    <div className="mt-6 overflow-hidden rounded-lg border bg-background shadow">
+                    <div className="mt-6 overflow-hidden rounded-2xl border bg-card shadow-sm">
                         <table className="w-full text-left text-sm">
-                            <thead className="border-b bg-muted/50 uppercase text-muted-foreground font-medium">
+                            <thead className="border-b bg-muted/20 text-muted-foreground font-medium">
                                 <tr>
-                                    <th className="px-4 py-3">Account Name</th>
-                                    <th className="px-4 py-3">Industry</th>
-                                    <th className="px-4 py-3">Tier</th>
-                                    <th className="px-4 py-3">Health Score</th>
-                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-6 py-4 font-normal">Account Name</th>
+                                    <th className="px-6 py-4 font-normal">Industry</th>
+                                    <th className="px-6 py-4 font-normal">Tier</th>
+                                    <th className="px-6 py-4 font-normal">Health Score</th>
+                                    <th className="px-6 py-4 font-normal">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {accounts?.map((acc) => (
-                                    <tr key={acc.id} className="border-b hover:bg-muted/30 transition-colors">
-                                        <td className="px-4 py-4 font-medium">{acc.name}</td>
-                                        <td className="px-4 py-4">{acc.industry}</td>
-                                        <td className="px-4 py-4 capitalize">{acc.accountTier}</td>
-                                        <td className="px-4 py-4">
+                                    <tr key={acc.id} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
+                                        <td className="px-6 py-4 font-medium">{acc.name}</td>
+                                        <td className="px-6 py-4 text-muted-foreground">{acc.industry}</td>
+                                        <td className="px-6 py-4 capitalize text-muted-foreground">{acc.accountTier}</td>
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-2 w-24 bg-muted rounded-full overflow-hidden">
                                                     <div
@@ -132,8 +132,8 @@ export default function InternalDashboard() {
                                                 <span className="font-semibold">{acc.healthScore}%</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 capitalize">
-                                            <Badge variant={acc.status === 'active' ? 'default' : 'secondary'}>{acc.status}</Badge>
+                                        <td className="px-6 py-4 capitalize">
+                                            <Badge variant={acc.status === 'active' ? 'default' : 'secondary'} className="font-medium rounded-full px-3">{acc.status}</Badge>
                                         </td>
                                     </tr>
                                 ))}

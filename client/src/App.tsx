@@ -42,14 +42,14 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full bg-sidebar">
         <AppSidebar />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex h-14 items-center justify-between gap-4 border-b px-4 shrink-0">
+        <div className="flex flex-col flex-1 overflow-hidden bg-background rounded-tl-[2rem] border-t border-l border-border shadow-sm">
+          <header className="flex h-14 items-center justify-between gap-4 border-b px-4 shrink-0 bg-background/80 backdrop-blur-md z-10">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
             <ThemeToggle />
           </header>
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 relative">
             <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
               {children}
             </Suspense>
@@ -68,18 +68,18 @@ function PlatformLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 border-l-4 border-indigo-500">
+      <div className="flex h-screen w-full bg-sidebar">
         {/* We can place a PlatformSidebar here later, for now reuse AppSidebar */}
         <AppSidebar />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex h-14 items-center justify-between gap-4 border-b border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 px-4 shrink-0">
+        <div className="flex flex-col flex-1 overflow-hidden bg-background rounded-tl-[2rem] border-t border-l border-border shadow-sm">
+          <header className="flex h-14 items-center justify-between gap-4 border-b px-4 shrink-0 bg-background/80 backdrop-blur-md z-10">
             <div className="flex items-center gap-2">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <span className="font-semibold text-indigo-700 dark:text-indigo-300">Platform Administration</span>
+              <span className="font-semibold text-foreground">Platform Administration</span>
             </div>
             <ThemeToggle />
           </header>
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 relative">
             <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
               {children}
             </Suspense>

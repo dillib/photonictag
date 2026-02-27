@@ -82,12 +82,12 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <Link href="/landing" className="flex items-center gap-2">
           <motion.div
-            whileHover={{ scale: 1.05, rotate: 5, boxShadow: "0px 0px 10px 0px rgba(6, 182, 212, 0.5)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-cyan-400 to-indigo-500 shadow-md"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm"
           >
-            <QrCode className="h-5 w-5 text-white" />
+            <QrCode className="h-5 w-5 text-primary-foreground" />
           </motion.div>
           <div className="flex flex-col">
             <span className="text-base font-semibold tracking-tight">PhotonicTag</span>
@@ -120,8 +120,8 @@ export function AppSidebar() {
                             whileHover={{ x: 2 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                           >
-                            <item.icon className={`h-4 w-4 ${isActive ? 'text-primary drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]' : ''}`} />
-                            <span className={isActive ? 'font-medium text-white' : 'text-slate-400'}>{item.title}</span>
+                            <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+                            <span className={isActive ? 'font-medium text-foreground' : 'text-muted-foreground'}>{item.title}</span>
                           </motion.div>
                         </Link>
                       </SidebarMenuButton>
