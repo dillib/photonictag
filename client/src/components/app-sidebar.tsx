@@ -132,43 +132,45 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground">
-            Internal Management
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {[
-                { title: "Internal Hub", url: "/admin/internal", icon: Rocket },
-                { title: "AI Support", url: "/admin/support", icon: LifeBuoy },
-              ].map((item, index) => {
-                const isActive = location === item.url;
-                return (
-                  <motion.div
-                    key={item.title}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: (navigationItems.length + index) * 0.05 }}
-                  >
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild data-active={isActive}>
-                        <Link href={item.url}>
-                          <motion.div
-                            className="flex items-center gap-2 w-full"
-                            whileHover={{ x: 2 }}
-                          >
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                          </motion.div>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </motion.div>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {user?.isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground">
+              Internal Management
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {[
+                  { title: "Internal Hub", url: "/admin/internal", icon: Rocket },
+                  { title: "AI Support", url: "/admin/support", icon: LifeBuoy },
+                ].map((item, index) => {
+                  const isActive = location === item.url;
+                  return (
+                    <motion.div
+                      key={item.title}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (navigationItems.length + index) * 0.05 }}
+                    >
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild data-active={isActive}>
+                          <Link href={item.url}>
+                            <motion.div
+                              className="flex items-center gap-2 w-full"
+                              whileHover={{ x: 2 }}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </motion.div>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </motion.div>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-4">
         <AnimatePresence>
