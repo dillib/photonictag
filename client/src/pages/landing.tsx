@@ -61,24 +61,24 @@ const enterpriseLogos = [
 // Key benefits (brief) - SAP-first ordering
 const keyBenefits = [
   {
-    icon: BarChart3,
-    title: "SAP S/4HANA Integration",
-    description: "Native connector syncs product master data, BOMs, and sustainability metrics automatically"
+    icon: Shield,
+    title: "Biogenic Tags",
+    description: "Microscopic, unforgeable optical signatures embedded directly into your materials."
   },
   {
-    icon: Shield,
-    title: "EU Compliance Guaranteed",
-    description: "Pre-built templates for Battery Regulation, ESPR, PPWR — always up to date"
+    icon: Zap,
+    title: "Instant Verification",
+    description: "Field-ready mobile apps and industrial IoT sensors for sub-second authentication."
   },
   {
     icon: Leaf,
-    title: "Sustainability Tracking",
-    description: "Carbon footprint, recyclability, and circularity data from your existing SAP systems"
+    title: "Immutable Digital Twins",
+    description: "Cryptographically secured Digital Product Passports that exceed EU regulations."
   },
   {
-    icon: QrCode,
-    title: "Consumer Transparency",
-    description: "Tamper-proof QR codes link to verified product data — build trust at scale"
+    icon: BarChart3,
+    title: "SAP S/4HANA Integration",
+    description: "Native connector syncs product master data and BOMs automatically."
   }
 ];
 
@@ -90,7 +90,7 @@ export default function Landing() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    
+
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/leads", {
@@ -102,7 +102,7 @@ export default function Landing() {
           metadata: { page: "hero_cta" }
         }),
       });
-      
+
       if (response.ok) {
         toast({
           title: "Demo request received! 🎉",
@@ -164,12 +164,12 @@ export default function Landing() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-              The Only Digital Product Passport Platform{" "}
-              <span className="text-primary">Built for SAP S/4HANA</span>
+              Absolute Authentication at the{" "}
+              <span className="text-primary">Speed of Light.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              PhotonicTag connects directly to your SAP S/4HANA environment to auto-generate EU-compliant Digital Product Passports for every SKU. No manual data entry. No parallel systems. No compliance risk.
+              Secure your supply chain with the world's first Biogenic Optical Tagging platform. Generate immutable Digital Product Passports instantly integrated with your ERP.
             </p>
 
             {/* Email Capture Form */}
@@ -184,7 +184,7 @@ export default function Landing() {
                 disabled={isSubmitting}
               />
               <Button type="submit" size="lg" className="h-12 px-6 whitespace-nowrap" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Book a Technical Demo"}
+                {isSubmitting ? "Submitting..." : "Request Enterprise Demo"}
                 {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
             </form>
@@ -266,10 +266,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Why Fortune 500 Manufacturers Choose PhotonicTag
+              The Architecture of Absolute Trust
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              The only DPP platform built for enterprise SAP ecosystems. Leverage what you already have.
+              From microscopic physical tags to a globally accessible immutable registry.
             </p>
           </div>
 

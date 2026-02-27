@@ -272,8 +272,8 @@ export default function SAPConnector() {
             <SiSap className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" data-testid="text-sap-title">SAP Connector</h1>
-            <p className="text-muted-foreground">Connect your SAP system to sync product master data</p>
+            <h1 className="text-2xl font-bold tracking-tight" data-testid="text-sap-title">Enterprise Integrations (SAP)</h1>
+            <p className="text-muted-foreground">Synchronize your master data, bill of materials, and production orders directly to the PhotonicTag Registry.</p>
           </div>
         </div>
         {sapConnector && <StatusBadge status={healthStatus?.overall || sapConnector.status} />}
@@ -297,7 +297,7 @@ export default function SAPConnector() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -321,17 +321,17 @@ export default function SAPConnector() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-               {healthStatus.overall === 'healthy' ? (
-                 <div className="text-green-600 flex items-center gap-2">
-                   <CheckCircle2 className="h-5 w-5" />
-                   <span>Operational</span>
-                 </div>
-               ) : (
-                 <div className="text-red-500 flex items-center gap-2">
-                   <AlertCircle className="h-5 w-5" />
-                   <span>Issues Detected</span>
-                 </div>
-               )}
+              {healthStatus.overall === 'healthy' ? (
+                <div className="text-green-600 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>Operational</span>
+                </div>
+              ) : (
+                <div className="text-red-500 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  <span>Issues Detected</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -667,7 +667,7 @@ export default function SAPConnector() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {sapConnector?.status === "active" ? "Ready to sync" : "Not configured"}
+                  {sapConnector?.status === "active" ? "Connection established. Bi-directional sync active." : "Not configured"}
                 </p>
               </CardContent>
             </Card>

@@ -316,7 +316,7 @@ export default function Dashboard() {
             Intelligence Hub
           </h1>
           <p className="text-muted-foreground">
-            Global view of your Biogenic Digital Twins and verifications.
+            Global view of your Biogenic Digital Twins, physical verifications, and supply chain integrity.
           </p>
         </div>
         <div className="flex gap-2">

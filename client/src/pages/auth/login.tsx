@@ -37,8 +37,8 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({
-  title = "Welcome back",
-  subtitle = "Sign in to your account to continue",
+  title = "Access the Trust Registry",
+  subtitle = "Sign in to manage your biogenic digital twins and monitor global supply chain integrity.",
   defaultEmail = "",
   redirectUrl = "/"
 }: LoginPageProps) {

@@ -47,16 +47,16 @@ export default function Products() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" data-testid="text-products-title">
-            Products
+            Digital Twin Registry
           </h1>
           <p className="text-muted-foreground">
-            Manage your Digital Product Passports
+            Manage your cryptographically secured product identities and track their lifecycle.
           </p>
         </div>
         <Link href="/products/new">
           <Button data-testid="button-create-product">
             <Plus className="mr-2 h-4 w-4" />
-            Create Product
+            Enroll Twin
           </Button>
         </Link>
       </div>
@@ -138,14 +138,14 @@ export default function Products() {
             <h3 className="text-lg font-semibold mb-2">No products found</h3>
             <p className="text-muted-foreground text-center mb-6">
               {searchQuery
-                ? "No products match your search criteria"
-                : "Get started by creating your first product"}
+                ? "No matching digital twins found"
+                : "Your registry is empty. Enroll your first twin to generate its immutable biometric signature."}
             </p>
             {!searchQuery && (
               <Link href="/products/new">
                 <Button data-testid="button-create-first">
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Product
+                  Enroll Twin
                 </Button>
               </Link>
             )}

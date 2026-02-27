@@ -40,10 +40,10 @@ export default function IoTDevices() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" data-testid="text-iot-title">
-            IoT Devices
+            Optical Sensor Fleet
           </h1>
           <p className="text-muted-foreground">
-            Manage NFC, RFID, BLE tags and sensors linked to your products.
+            Manage your deployed industrial readers, mobile scanning endpoints, and authentication hardware.
           </p>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function IoTDevices() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            All Registered Devices
+            All Registered Sensors & Readers
             <Badge variant="secondary" className="ml-2">{activeCount} active</Badge>
           </CardTitle>
           <CardDescription>

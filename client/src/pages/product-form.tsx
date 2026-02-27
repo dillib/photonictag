@@ -159,12 +159,12 @@ export default function ProductForm() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" data-testid="text-form-title">
-            {isEditing ? "Edit Product" : "Create Product"}
+            {isEditing ? "Edit Digital Twin" : "Enroll Digital Twin"}
           </h1>
           <p className="text-muted-foreground">
             {isEditing
-              ? "Update your Digital Product Passport"
-              : "Create a new Digital Product Passport"}
+              ? "Update your cryptographically secured product identity"
+              : "Provision a new product identity into the PhotonicTag Registry. This will generate the unique biometric signature requirements for physical tagging."}
           </p>
         </div>
       </div>
@@ -407,7 +407,7 @@ export default function ProductForm() {
             </Link>
             <Button type="submit" disabled={isPending} data-testid="button-submit">
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? "Update Product" : "Create Product"}
+              {isEditing ? "Update Identity" : "Enroll Twin"}
             </Button>
           </div>
         </form>

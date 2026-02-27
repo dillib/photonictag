@@ -290,7 +290,7 @@ export default function ProductDetail() {
           <Link href={`/product/${params.id}`} target="_blank">
             <Button variant="outline" data-testid="button-public-view">
               <ExternalLink className="mr-2 h-4 w-4" />
-              Public View
+              View Public Passport
             </Button>
           </Link>
           <Link href={`/products/${params.id}/edit`}>
@@ -387,8 +387,8 @@ export default function ProductDetail() {
                 <TabsContent value="overview" className="p-6 space-y-6">
                   <div>
                     <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      <Factory className="h-4 w-4" />
-                      Product Identification
+                      <Shield className="h-4 w-4" />
+                      Identity & Authentication
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <div className="space-y-1">
@@ -438,7 +438,7 @@ export default function ProductDetail() {
                   <div>
                     <h3 className="font-semibold mb-3 flex items-center gap-2">
                       <Package className="h-4 w-4" />
-                      Materials & Composition
+                      Compliance & Materials
                     </h3>
                     <p className="text-muted-foreground leading-relaxed mb-4" data-testid="text-materials">
                       {product.materials}
@@ -904,8 +904,8 @@ export default function ProductDetail() {
                               <div className="text-3xl font-bold" data-testid="text-circularity-score">
                                 {storedCircularity.score}
                               </div>
-                              <Badge 
-                                variant={storedCircularity.grade === "A+" || storedCircularity.grade === "A" ? "default" : "secondary"} 
+                              <Badge
+                                variant={storedCircularity.grade === "A+" || storedCircularity.grade === "A" ? "default" : "secondary"}
                                 className="text-lg"
                                 data-testid="badge-circularity-grade"
                               >
@@ -971,7 +971,7 @@ export default function ProductDetail() {
                         {storedRisk ? (
                           <div className="space-y-4">
                             <div className="flex items-center gap-3 flex-wrap">
-                              <Badge 
+                              <Badge
                                 variant={storedRisk.overallRisk === "Low" ? "default" : storedRisk.overallRisk === "Medium" ? "secondary" : "destructive"}
                                 className="text-sm"
                                 data-testid="badge-risk-level"
@@ -984,7 +984,7 @@ export default function ProductDetail() {
                               </div>
                             </div>
                             <Progress value={storedRisk.dataCompleteness} className="h-2" />
-                            
+
                             <div>
                               <p className="text-sm font-medium mb-1">Counterfeit Risk</p>
                               <p className="text-sm text-muted-foreground" data-testid="text-counterfeit-risk">
@@ -997,12 +997,12 @@ export default function ProductDetail() {
                                 <p className="text-sm font-medium mb-2">Risk Flags:</p>
                                 <div className="space-y-2">
                                   {storedRisk.riskFlags.map((flag, i) => (
-                                    <div 
-                                      key={i} 
+                                    <div
+                                      key={i}
                                       className="flex items-start gap-2 p-2 rounded-md bg-muted/50"
                                       data-testid={`risk-flag-${i}`}
                                     >
-                                      <Badge 
+                                      <Badge
                                         variant={flag.severity === "Low" ? "outline" : flag.severity === "Medium" ? "secondary" : "destructive"}
                                         className="text-xs shrink-0"
                                       >
@@ -1254,8 +1254,8 @@ export default function ProductDetail() {
                       {iotDevices.map((device) => {
                         const DeviceIcon = device.deviceType === "nfc" ? Radio
                           : device.deviceType === "rfid" ? Signal
-                          : device.deviceType === "ble" ? Bluetooth
-                          : Wifi;
+                            : device.deviceType === "ble" ? Bluetooth
+                              : Wifi;
                         return (
                           <Card key={device.id} data-testid={`iot-device-card-${device.id}`}>
                             <CardContent className="p-4">
