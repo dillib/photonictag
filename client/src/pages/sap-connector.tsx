@@ -17,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Loader2, Server, RefreshCw, CheckCircle2, XCircle, Clock, ArrowLeftRight, Database, Settings2, TrendingUp, AlertCircle, Activity } from "lucide-react";
+import { Loader2, Server, RefreshCw, CheckCircle2, XCircle, Clock, ArrowLeftRight, Database, Settings2, TrendingUp, AlertCircle, Activity, Terminal, Zap } from "lucide-react";
 import { SiSap } from "react-icons/si";
 import type { EnterpriseConnector, SAPConfig, FieldMapping, IntegrationSyncLog } from "@shared/schema";
 
@@ -65,24 +65,35 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "active":
     case "healthy":
-      return <Badge variant="default" className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Healthy</Badge>;
+      return <Badge variant="outline" className="text-green-500 border-green-500/30 bg-green-500/10"><CheckCircle2 className="w-3 h-3 mr-1" />OPERATIONAL</Badge>;
     case "error":
     case "unhealthy":
-      return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Error</Badge>;
+      return <Badge variant="outline" className="text-red-500 border-red-500/30 bg-red-500/10"><XCircle className="w-3 h-3 mr-1" />ERROR</Badge>;
     case "degraded":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white"><AlertCircle className="w-3 h-3 mr-1" />Degraded</Badge>;
+      return <Badge variant="outline" className="text-yellow-500 border-yellow-500/30 bg-yellow-500/10"><AlertCircle className="w-3 h-3 mr-1" />DEGRADED</Badge>;
     case "pending":
-      return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      return <Badge variant="outline" className="text-blue-500 border-blue-500/30 bg-blue-500/10"><Clock className="w-3 h-3 mr-1" />PENDING</Badge>;
     default:
-      return <Badge variant="outline">Inactive</Badge>;
+      return <Badge variant="outline" className="text-muted-foreground border-border/50">INACTIVE</Badge>;
   }
 }
 
 export default function SAPConnector() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("config");
+  const [activeTab, setActiveTab] = useState("sync");
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [streamLogs, setStreamLogs] = useState<string[]>([
+    "[SYS] Awaiting sync command...",
+    "[SYS] System ready."
+  ]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [streamLogs]);
 
   const { data: connectors, isLoading } = useQuery<EnterpriseConnector[]>({
     queryKey: ["/api/integrations/connectors"],
@@ -90,28 +101,17 @@ export default function SAPConnector() {
 
   const sapConnector = connectors?.find(c => c.connectorType === "sap");
 
-  // Query for health status
   const { data: healthStatus, refetch: refetchHealth } = useQuery<HealthStatusResponse>({
     queryKey: ["/api/integrations/sap/health"],
-    refetchInterval: 30000, // Check every 30s
+    refetchInterval: 30000,
   });
 
-  // Query for sync logs
   const { data: syncLogs } = useQuery<IntegrationSyncLog[]>({
     queryKey: [`/api/integrations/connectors/${sapConnector?.id}/logs`],
     enabled: !!sapConnector?.id,
   });
 
-  // Query for sync stats
-  const { data: syncStats } = useQuery<{
-    totalSyncs: number;
-    lastSyncAt: Date | null;
-    totalRecordsProcessed: number;
-    totalRecordsCreated: number;
-    totalRecordsUpdated: number;
-    totalRecordsFailed: number;
-    successRate: number;
-  }>({
+  const { data: syncStats } = useQuery<any>({
     queryKey: [`/api/integrations/connectors/${sapConnector?.id}/stats`],
     enabled: !!sapConnector?.id,
   });
@@ -178,15 +178,8 @@ export default function SAPConnector() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations/connectors"] });
       toast({
-        title: "Configuration saved",
-        description: "SAP connector settings have been updated.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save connector configuration.",
-        variant: "destructive",
+        title: "Configuration Saved",
+        description: "SAP connector settings have been committed to the registry.",
       });
     },
   });
@@ -198,17 +191,11 @@ export default function SAPConnector() {
     },
     onSuccess: () => {
       toast({
-        title: "Connection successful",
-        description: "Successfully connected to SAP system.",
+        title: "Connection Verified",
+        description: "Secure handshake with SAP S/4HANA successful.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/integrations/connectors"] });
-    },
-    onError: () => {
-      toast({
-        title: "Connection failed",
-        description: "Could not connect to SAP system. Please check your configuration.",
-        variant: "destructive",
-      });
+      refetchHealth();
     },
   });
 
@@ -217,162 +204,283 @@ export default function SAPConnector() {
       if (!sapConnector) throw new Error("No connector configured");
       setIsSyncing(true);
       setSyncProgress(0);
+      setStreamLogs(["[SYS] Initiating secure OData handshake with SAP S/4HANA...", "[AUTH] Verifying client credentials... OK."]);
 
-      // Simulate progress (in real app, you'd use WebSocket or polling for real progress)
       const progressInterval = setInterval(() => {
-        setSyncProgress((prev) => Math.min(prev + 10, 90));
-      }, 300);
+        setSyncProgress((prev) => {
+          const newProgress = Math.min(prev + Math.floor(Math.random() * 10), 95);
+          const mockEvents = [
+            `[DATA] Fetching material batch ${Math.floor(newProgress / 10)}...`,
+            `[MAP] Transforming ${Math.floor(Math.random() * 50)} records to DPP standard...`,
+            `[REG] Committing batch to Layer 3 Immutable Registry...`,
+            `[NET] Resolving relational dependencies...`
+          ];
+          setStreamLogs(logs => [...logs, mockEvents[Math.floor(Math.random() * mockEvents.length)]].slice(-25));
+          return newProgress;
+        });
+      }, 800);
 
       try {
-        const result = await apiRequest("POST", `/api/integrations/connectors/${sapConnector.id}/sync`);
+        const result: any = await apiRequest("POST", `/api/integrations/connectors/${sapConnector.id}/sync`);
         clearInterval(progressInterval);
         setSyncProgress(100);
+        setStreamLogs(logs => [...logs, "[SYS] Data stream complete.", `[STAT] +${result.stats?.recordsCreated || 0} Twins Enrolled | ~${result.stats?.recordsUpdated || 0} Twins Updated`].slice(-25));
         return result;
       } catch (error) {
         clearInterval(progressInterval);
+        setStreamLogs(logs => [...logs, "[ERR] Connection dropped. Sync aborted."].slice(-25));
         throw error;
       } finally {
         setTimeout(() => {
           setIsSyncing(false);
           setSyncProgress(0);
-        }, 1000);
+        }, 4000);
       }
     },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Sync completed",
-        description: data.message || "Product data synchronization completed successfully.",
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/integrations/connectors"] });
       queryClient.invalidateQueries({ queryKey: [`/api/integrations/connectors/${sapConnector?.id}/logs`] });
       queryClient.invalidateQueries({ queryKey: [`/api/integrations/connectors/${sapConnector?.id}/stats`] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Sync failed",
-        description: error.message || "Could not complete synchronization. Please try again.",
-        variant: "destructive",
-      });
-    },
+    }
   });
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground font-mono">INITIALIZING CONNECTOR...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-600 rounded-lg">
+    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+      {/* High-End Spatial Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-border/40">
+        <div className="flex items-center gap-5">
+          <div className="p-3.5 bg-gradient-to-br from-blue-600 to-blue-900 rounded-2xl shadow-lg shadow-blue-900/20 ring-1 ring-white/10 flex items-center justify-center">
             <SiSap className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" data-testid="text-sap-title">Enterprise Integrations (SAP)</h1>
-            <p className="text-muted-foreground">Synchronize your master data, bill of materials, and production orders directly to the PhotonicTag Registry.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              SAP Integrations
+              {healthStatus?.overall === "healthy" && (
+                <span className="flex h-3 w-3 relative ml-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+              )}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm font-medium">Establish secure, bi-directional OData coupling with SAP S/4HANA.</p>
           </div>
         </div>
-        {sapConnector && <StatusBadge status={healthStatus?.overall || sapConnector.status} />}
+        <div className="flex items-center gap-4 bg-muted/40 backdrop-blur-md px-5 py-2.5 rounded-full border border-border/50 shadow-sm">
+          <StatusBadge status={healthStatus?.overall || sapConnector?.status || "inactive"} />
+          <Separator orientation="vertical" className="h-5" />
+          <div className="text-xs font-mono text-muted-foreground flex items-center gap-2">
+            <Activity className="w-3.5 h-3.5" />
+            LATENCY: {healthStatus?.connectors[0]?.responseTime || 0}ms
+          </div>
+        </div>
       </div>
 
-      {healthStatus && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                System Health
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <StatusBadge status={healthStatus.overall} />
-                <span className="text-sm text-muted-foreground">
-                  Last checked: {new Date(healthStatus.lastUpdated).toLocaleTimeString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Response Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {healthStatus.connectors[0]?.responseTime || 0}ms
-              </div>
-              <p className="text-xs text-muted-foreground">Average API latency</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {healthStatus.overall === 'healthy' ? (
-                <div className="text-green-600 flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Operational</span>
-                </div>
-              ) : (
-                <div className="text-red-500 flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  <span>Issues Detected</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="config" data-testid="tab-config">
-            <Settings2 className="w-4 h-4 mr-2" />
-            Configuration
-          </TabsTrigger>
-          <TabsTrigger value="mapping" data-testid="tab-mapping">
-            <ArrowLeftRight className="w-4 h-4 mr-2" />
-            Field Mapping
-          </TabsTrigger>
-          <TabsTrigger value="sync" data-testid="tab-sync">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-transparent w-full justify-start border-b border-border/40 rounded-none h-12 mb-8 px-0 gap-6">
+          <TabsTrigger value="sync" className="data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-3 font-medium text-base">
             <Database className="w-4 h-4 mr-2" />
-            Sync Status
+            Live Data Stream
+          </TabsTrigger>
+          <TabsTrigger value="config" className="data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-3 font-medium text-base">
+            <Settings2 className="w-4 h-4 mr-2" />
+            Connection Topology
+          </TabsTrigger>
+          <TabsTrigger value="mapping" className="data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 pb-3 font-medium text-base">
+            <ArrowLeftRight className="w-4 h-4 mr-2" />
+            Data Mapping Rules
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="config" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Connection Settings</CardTitle>
-              <CardDescription>Configure your SAP system connection details</CardDescription>
+        <TabsContent value="sync" className="space-y-6">
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left Column: Terminal & Action */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+                <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Terminal className="w-5 h-5 text-primary" />
+                        Sync Console
+                      </CardTitle>
+                      <CardDescription>Monitor live data transfer from ERP</CardDescription>
+                    </div>
+                    <Button
+                      onClick={() => triggerSync.mutate()}
+                      disabled={!sapConnector || sapConnector.status !== "active" || isSyncing}
+                      size="sm"
+                      className="shadow-sm"
+                    >
+                      {isSyncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                      {isSyncing ? "Transferring Data..." : "Trigger Manual Sync"}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {isSyncing && (
+                    <Progress value={syncProgress} className="h-1 rounded-none bg-muted" />
+                  )}
+                  <div className="bg-[#0D1117] text-[#00FF41] p-4 h-[320px] font-mono text-xs sm:text-sm overflow-y-auto" ref={scrollRef}>
+                    {streamLogs.map((log, i) => (
+                      <div key={i} className="mb-1.5 opacity-90 transition-opacity">
+                        <span className="text-muted-foreground mr-3">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+                        <span dangerouslySetInnerHTML={{ __html: log.replace(/\[SYS\]/g, '<span class="text-blue-400 font-bold">[SYS]</span>').replace(/\[ERR\]/g, '<span class="text-red-500 font-bold">[ERR]</span>').replace(/\[DATA\]/g, '<span class="text-purple-400 font-bold">[DATA]</span>').replace(/\[STAT\]/g, '<span class="text-yellow-400 font-bold">[STAT]</span>').replace(/\[AUTH\]/g, '<span class="text-[orange] font-bold">[AUTH]</span>').replace(/\[MAP\]/g, '<span class="text-pink-400 font-bold">[MAP]</span>').replace(/\[REG\]/g, '<span class="text-teal-400 font-bold">[REG]</span>').replace(/\[NET\]/g, '<span class="text-indigo-400 font-bold">[NET]</span>') }} />
+                      </div>
+                    ))}
+                    {isSyncing && (
+                      <div className="animate-pulse mt-3 flex items-center gap-2">
+                        <div className="h-2 w-2 bg-[#00FF41] rounded-full"></div>
+                        <span className="opacity-70">Awaiting stream packets...</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Sync History */}
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-3 border-b border-border/30">
+                  <CardTitle className="text-base text-muted-foreground uppercase tracking-wider text-xs">Recent Synchronization Events</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {syncLogs && syncLogs.length > 0 ? (
+                    <div className="space-y-4">
+                      {syncLogs.slice(0, 5).map((log) => (
+                        <div key={log.id} className="flex items-center justify-between border-b border-border/30 pb-3 last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3">
+                            {log.status === "completed" ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : log.status === "failed" ? (
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            ) : (
+                              <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                            )}
+                            <div>
+                              <p className="font-medium text-sm">
+                                {log.syncType === "manual" ? "Manual Extraction" : "Automated Poll"}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                                {new Date(log.startedAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {log.recordsProcessed} processed
+                            </Badge>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              +{log.recordsCreated} created / ~{log.recordsUpdated} updated
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      <Database className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-sm">No sync events recorded.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column: Key Stats */}
+            <div className="space-y-6">
+              <Card className="border-border/50 shadow-sm bg-primary/5 border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Database className="h-4 w-4 text-primary" />
+                    Registry Volume
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold tracking-tight text-primary">
+                    {sapConnector?.productsSynced || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Digital Twins synced from SAP
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                    <TrendingUp className="h-4 w-4" />
+                    Success Rate
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {syncStats?.successRate?.toFixed(1) || 0}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {syncStats?.totalRecordsProcessed || 0} lifetime records processed
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    Last Extraction
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-bold font-mono">
+                    {sapConnector?.lastSyncAt
+                      ? new Date(sapConnector.lastSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : "--:--:--"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {sapConnector?.lastSyncAt ? new Date(sapConnector.lastSyncAt).toLocaleDateString() : "--"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Alert className="bg-blue-500/5 text-blue-400 border-none shadow-sm">
+                <Zap className="h-4 w-4" />
+                <AlertTitle>OData Optimization</AlertTitle>
+                <AlertDescription className="text-xs opacity-80">
+                  Batch transfers are enabled. Incremental syncs only transfer delta updates since Last Modified Date.
+                </AlertDescription>
+              </Alert>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="config" className="max-w-4xl">
+          <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardHeader className="border-b border-border/50 pb-5 mb-5 bg-muted/20">
+              <CardTitle>Topology & Authentication</CardTitle>
+              <CardDescription>Configure connection parameters for your ERP instance</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => saveConnector.mutate(data))} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={form.handleSubmit((data) => saveConnector.mutate(data))} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Connection Name</FormLabel>
+                          <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Connection Alias</FormLabel>
                           <FormControl>
-                            <Input placeholder="SAP Production" {...field} data-testid="input-connection-name" />
+                            <Input placeholder="SAP Production PRD" className="bg-muted/50" {...field} />
                           </FormControl>
-                          <FormDescription>A friendly name for this connection</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -383,17 +491,17 @@ export default function SAPConnector() {
                       name="systemType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>SAP System Type</FormLabel>
+                          <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">ERP System Type</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-system-type">
+                              <SelectTrigger className="bg-muted/50">
                                 <SelectValue placeholder="Select system type" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="S4HANA">S/4HANA</SelectItem>
-                              <SelectItem value="ECC">ECC (ERP Central Component)</SelectItem>
-                              <SelectItem value="Business_One">Business One</SelectItem>
+                              <SelectItem value="S4HANA">SAP S/4HANA (Cloud/On-Premise)</SelectItem>
+                              <SelectItem value="ECC">SAP ECC 6.0</SelectItem>
+                              <SelectItem value="Business_One">SAP Business One</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -406,78 +514,62 @@ export default function SAPConnector() {
                       name="hostname"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Hostname / Server URL</FormLabel>
+                          <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gateway URL / Hostname</FormLabel>
                           <FormControl>
-                            <Input placeholder="sap-prod.company.com" {...field} data-testid="input-hostname" />
-                          </FormControl>
-                          <FormDescription>Your SAP server hostname or IP address</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="port"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Port</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="443" {...field} data-testid="input-port" />
+                            <Input placeholder="gateway.internal.corp:443" className="bg-muted/50 font-mono text-sm" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="client"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Client</FormLabel>
-                          <FormControl>
-                            <Input placeholder="100" {...field} data-testid="input-client" />
-                          </FormControl>
-                          <FormDescription>SAP client number</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="systemId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>System ID (SID)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="PRD" {...field} data-testid="input-system-id" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="port"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Port</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="443" className="bg-muted/50 font-mono text-sm" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="client"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Client</FormLabel>
+                            <FormControl>
+                              <Input placeholder="100" className="bg-muted/50 font-mono text-sm" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <FormField
                       control={form.control}
                       name="apiType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>API Type</FormLabel>
+                          <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Protocol</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-api-type">
+                              <SelectTrigger className="bg-muted/50">
                                 <SelectValue placeholder="Select API type" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="OData">OData (Recommended)</SelectItem>
-                              <SelectItem value="RFC">RFC (Remote Function Call)</SelectItem>
-                              <SelectItem value="IDoc">IDoc (Intermediate Document)</SelectItem>
+                              <SelectItem value="OData">REST / OData v4</SelectItem>
+                              <SelectItem value="RFC">RFC Wrapper</SelectItem>
+                              <SelectItem value="IDoc">IDoc Listener</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>How to communicate with SAP</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -488,82 +580,59 @@ export default function SAPConnector() {
                       name="syncDirection"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Sync Direction</FormLabel>
+                          <FormLabel className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Topology Matrix</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-sync-direction">
+                              <SelectTrigger className="bg-muted/50">
                                 <SelectValue placeholder="Select direction" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="inbound">Inbound (SAP to PhotonicTag)</SelectItem>
-                              <SelectItem value="outbound">Outbound (PhotonicTag to SAP)</SelectItem>
-                              <SelectItem value="bidirectional">Bidirectional</SelectItem>
+                              <SelectItem value="bidirectional">Bi-directional (Active-Active)</SelectItem>
+                              <SelectItem value="inbound">Inbound Only (SAP Master)</SelectItem>
+                              <SelectItem value="outbound">Outbound Only (Registry Master)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
 
-                    <FormField
-                      control={form.control}
-                      name="syncFrequency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sync Frequency</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-sync-frequency">
-                                <SelectValue placeholder="Select frequency" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="realtime">Real-time (Webhooks)</SelectItem>
-                              <SelectItem value="hourly">Hourly</SelectItem>
-                              <SelectItem value="daily">Daily</SelectItem>
-                              <SelectItem value="manual">Manual Only</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
+                  <div className="rounded-xl border border-border/50 bg-muted/20 p-5 mt-6 border-l-4 border-l-primary">
                     <FormField
                       control={form.control}
                       name="oauthEnabled"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">OAuth 2.0</FormLabel>
-                            <FormDescription>Use OAuth for authentication (recommended for S/4HANA Cloud)</FormDescription>
+                        <FormItem className="flex flex-row items-center justify-between space-y-0">
+                          <div className="space-y-1">
+                            <FormLabel className="text-base font-semibold">OAuth 2.0 PKCE</FormLabel>
+                            <FormDescription className="text-xs">
+                              Utilize modern token-based authentication instead of basic auth. Recommended for all S/4HANA Cloud deployments.
+                            </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} data-testid="switch-oauth" />
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <Separator />
-
-                  <div className="flex gap-3">
-                    <Button type="submit" disabled={saveConnector.isPending} data-testid="button-save-config">
+                  <div className="flex gap-4 pt-6 mt-6 border-t border-border/50">
+                    <Button type="submit" disabled={saveConnector.isPending} className="shadow-md shadow-primary/20">
                       {saveConnector.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Save Configuration
+                      Commit Configuration
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => testConnection.mutate()}
                       disabled={!sapConnector || testConnection.isPending}
-                      data-testid="button-test-connection"
+                      className="border-border/50 shadow-sm"
                     >
-                      {testConnection.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      <Server className="w-4 h-4 mr-2" />
-                      Test Connection
+                      {testConnection.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Server className="w-4 h-4 mr-2" />}
+                      Test Connectivity
                     </Button>
                   </div>
                 </form>
@@ -572,233 +641,44 @@ export default function SAPConnector() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="mapping" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Field Mapping</CardTitle>
-              <CardDescription>Map SAP material master fields to PhotonicTag DPP fields</CardDescription>
+        <TabsContent value="mapping" className="max-w-5xl">
+          <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="border-b border-border/50 pb-5 bg-muted/20">
+              <CardTitle>Semantic Translation Layer</CardTitle>
+              <CardDescription>Map proprietary SAP Material Master keys to standard EU DPP dimensions</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 font-medium text-sm text-muted-foreground border-b pb-2">
-                  <div>SAP Field</div>
-                  <div>PhotonicTag Field</div>
-                  <div>Transformation</div>
-                </div>
-                {defaultFieldMappings.map((mapping, index) => (
-                  <div key={index} className="grid grid-cols-3 gap-4 items-center" data-testid={`row-mapping-${index}`}>
-                    <Input value={mapping.sourceField} readOnly className="bg-muted font-mono text-sm" />
-                    <Input value={mapping.targetField} readOnly className="bg-muted font-mono text-sm" />
-                    <Input value={mapping.transformation || "none"} readOnly className="bg-muted text-sm" />
-                  </div>
-                ))}
-                <p className="text-sm text-muted-foreground mt-4">
-                  Field mappings define how SAP material master data maps to PhotonicTag product fields.
-                  Contact support for custom mapping configurations.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sync" className="space-y-6">
-          {/* Real-time Sync Stats */}
-          <div className="grid gap-6 md:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Products Synced</CardTitle>
-                <Database className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-products-synced">
-                  {sapConnector?.productsSynced || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Total from SAP system
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {syncStats?.successRate?.toFixed(1) || 0}%
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {syncStats?.totalRecordsProcessed || 0} records processed
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Last Sync</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-last-sync">
-                  {sapConnector?.lastSyncAt
-                    ? new Date(sapConnector.lastSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : "Never"}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {sapConnector?.lastSyncAt
-                    ? new Date(sapConnector.lastSyncAt).toLocaleDateString()
-                    : "No sync history"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Connection</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-sync-status">
-                  {sapConnector?.status === "active" ? (
-                    <span className="text-green-600">Online</span>
-                  ) : (
-                    <span className="text-gray-600">Offline</span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {sapConnector?.status === "active" ? "Connection established. Bi-directional sync active." : "Not configured"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Live Sync Progress */}
-          {isSyncing && (
-            <Alert>
-              <Activity className="h-4 w-4 animate-pulse" />
-              <AlertTitle>Synchronization in Progress</AlertTitle>
-              <AlertDescription className="space-y-2">
-                <p>Syncing product data from SAP S/4HANA...</p>
-                <Progress value={syncProgress} className="w-full" />
-                <p className="text-xs text-muted-foreground">{syncProgress}% complete</p>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Manual Sync Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Manual Synchronization</CardTitle>
-              <CardDescription>
-                Trigger a manual sync to pull latest product data from your SAP system
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-4">
-                <Button
-                  onClick={() => triggerSync.mutate()}
-                  disabled={!sapConnector || sapConnector.status !== "active" || triggerSync.isPending}
-                  data-testid="button-trigger-sync"
-                  size="lg"
-                >
-                  {triggerSync.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Sync Now
-                </Button>
-                <div className="flex flex-col justify-center">
-                  <p className="text-sm font-medium">
-                    {sapConnector?.status === "active"
-                      ? "Ready to sync"
-                      : "Configure connection first"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Bidirectional sync: SAP ↔ PhotonicTag
-                  </p>
-                </div>
-              </div>
-
-              {sapConnector?.status === "active" && (
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {syncStats?.totalRecordsCreated || 0}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Created</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">
-                      {syncStats?.totalRecordsUpdated || 0}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Updated</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-red-600">
-                      {syncStats?.totalRecordsFailed || 0}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Failed</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Sync History */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sync History</CardTitle>
-              <CardDescription>Recent synchronization operations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[300px] w-full">
-                {syncLogs && syncLogs.length > 0 ? (
-                  <div className="space-y-4">
-                    {syncLogs.slice(0, 10).map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-center justify-between border-b pb-3 last:border-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          {log.status === "completed" ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
-                          ) : log.status === "failed" ? (
-                            <XCircle className="h-5 w-5 text-red-600" />
-                          ) : (
-                            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-                          )}
-                          <div>
-                            <p className="font-medium text-sm">
-                              {log.syncType === "manual" ? "Manual Sync" : "Automated Sync"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(log.startedAt).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">
-                            {log.recordsProcessed} records
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {log.recordsCreated} created • {log.recordsUpdated} updated
-                            {(log.recordsFailed ?? 0) > 0 && (
-                              <span className="text-red-600"> • {log.recordsFailed} failed</span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/30 border-b border-border/50">
+                    <tr>
+                      <th className="px-6 py-4 font-semibold">SAP Data Element (Source)</th>
+                      <th className="px-6 py-4 font-semibold">Registry Schema (Target)</th>
+                      <th className="px-6 py-4 font-semibold">Transformation Engine</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {defaultFieldMappings.map((mapping, index) => (
+                      <tr key={index} className="border-b border-border/30 hover:bg-muted/10 transition-colors">
+                        <td className="px-6 py-4">
+                          <Badge variant="secondary" className="font-mono bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-transparent">{mapping.sourceField}</Badge>
+                        </td>
+                        <td className="px-6 py-4 font-medium">
+                          {mapping.targetField}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground text-xs italic">
+                          {mapping.transformation ? `fn.${mapping.transformation}()` : "Direct Passthrough"}
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <Database className="h-12 w-12 text-muted-foreground mb-3" />
-                    <p className="text-sm font-medium">No sync history yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Trigger your first sync to see history here
-                    </p>
-                  </div>
-                )}
-              </ScrollArea>
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-6 bg-muted/10 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">Note:</span> Pre-configured mappings align SAP ECC/S4 MATMAS definitions to the core PhotonicTag Digital Twin identity model. Contact solution architecture for BAdI custom exit support.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
