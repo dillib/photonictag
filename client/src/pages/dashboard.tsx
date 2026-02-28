@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AreaChart,
   Area,
@@ -43,73 +44,7 @@ import {
 } from "recharts";
 import type { Product } from "@shared/schema";
 
-// Mock data for charts - in production this would come from API
-const scanTrendData = [
-  { name: "Mon", scans: 120, products: 5 },
-  { name: "Tue", scans: 180, products: 8 },
-  { name: "Wed", scans: 150, products: 3 },
-  { name: "Thu", scans: 280, products: 12 },
-  { name: "Fri", scans: 320, products: 7 },
-  { name: "Sat", scans: 250, products: 4 },
-  { name: "Sun", scans: 190, products: 6 },
-];
-
-const categoryData = [
-  { name: "Electronics", count: 45 },
-  { name: "Textiles", count: 32 },
-  { name: "Batteries", count: 28 },
-  { name: "Packaging", count: 18 },
-  { name: "Industrial", count: 12 },
-];
-
-// Mock activity data
-const recentActivity = [
-  {
-    id: 1,
-    type: "product_created",
-    title: "New product created",
-    description: "EcoPower Battery 5000mAh added",
-    time: "2 minutes ago",
-    icon: Plus,
-    color: "text-green-500"
-  },
-  {
-    id: 2,
-    type: "scan",
-    title: "Product scanned",
-    description: "QR scan from Munich, Germany",
-    time: "15 minutes ago",
-    icon: QrCode,
-    color: "text-blue-500"
-  },
-  {
-    id: 3,
-    type: "sap_sync",
-    title: "SAP sync completed",
-    description: "42 materials synchronized",
-    time: "1 hour ago",
-    icon: RefreshCw,
-    color: "text-purple-500"
-  },
-  {
-    id: 4,
-    type: "compliance",
-    title: "Compliance check passed",
-    description: "EU DPP validation successful",
-    time: "2 hours ago",
-    icon: Shield,
-    color: "text-green-500"
-  },
-  {
-    id: 5,
-    type: "scan",
-    title: "Product scanned",
-    description: "NFC tap from Paris, France",
-    time: "3 hours ago",
-    icon: Wifi,
-    color: "text-blue-500"
-  },
-];
+// Remove hardcoded mock data
 
 function StatCard({
   title,
@@ -159,15 +94,19 @@ function StatCard({
   );
 }
 
-function SAPSyncCard() {
-  // Mock SAP sync status - in production this would be fetched from API
-  const syncStatus = {
-    isConnected: true,
-    lastSync: "10 minutes ago",
-    productsInSync: 96,
-    pendingChanges: 3,
-    successRate: 98.5
-  };
+function SAPSyncCard({ syncStatus, isLoading }: { syncStatus: any; isLoading: boolean }) {
+  if (isLoading || !syncStatus) {
+    return (
+      <Card className="border-primary/20">
+        <CardHeader className="pb-2">
+          <Skeleton className="h-4 w-32" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-primary/20">
@@ -295,173 +234,208 @@ export default function Dashboard() {
     queryKey: ["/api/products"],
   });
 
-  const totalProducts = products?.length || 0;
-  const avgRepairability = products?.length
-    ? (products.reduce((acc, p) => acc + p.repairabilityScore, 0) / products.length).toFixed(1)
-    : "0";
-  const totalCarbonFootprint = products?.reduce((acc, p) => acc + p.carbonFootprint, 0) || 0;
-
-  // Calculate unique categories
-  const uniqueCategories = new Set(products?.map(p => p.productCategory) || []).size;
-
-  // Mock total scans - in production this would come from analytics API
-  const totalScans = 1490;
+  const { data: metrics, isLoading: isLoadingMetrics } = useQuery<any>({
+    queryKey: ["/api/dashboard/metrics"],
+  });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl" data-testid="text-dashboard-title">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
             Intelligence Hub
           </h1>
           <p className="text-muted-foreground">
-            Global view of your Biogenic Digital Twins, physical verifications, and supply chain integrity.
+            Global view of your Biogenic Digital Twins and supply chain integrity.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
+        <div className="flex items-center gap-2">
           <Link href="/products/new">
-            <Button data-testid="button-create-product-hero">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Enroll Twin
+              Enroll Digital Twin
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Main Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Active Digital Twins"
-          value={totalProducts}
-          subtitle="Enrolled components"
+          value={metrics?.totalProducts || 0}
+          subtitle="Cryptographically secured products"
           icon={Package}
           trend="up"
           trendValue="+12% this month"
-          isLoading={isLoading}
+          isLoading={isLoadingMetrics}
         />
         <StatCard
           title="Total Verifications"
-          value={totalScans.toLocaleString()}
-          subtitle="Optical & Field Scans"
-          icon={Eye}
+          value={metrics?.totalVerifications || 0}
+          subtitle="Optical & field scans"
+          icon={QrCode}
           trend="up"
-          trendValue="+28% this week"
-          isLoading={isLoading}
+          trendValue="+18% this month"
+          isLoading={isLoadingMetrics}
         />
         <StatCard
-          title="Avg Repairability"
-          value={`${avgRepairability}/10`}
-          subtitle="Across all products"
-          icon={Sparkles}
-          trend="neutral"
-          trendValue="No change"
-          isLoading={isLoading}
+          title="Authentication Rate"
+          value={`${metrics?.passRate || 0}%`}
+          subtitle="Verified authentic vs counterfeit"
+          icon={Shield}
+          trend={metrics?.passRate > 95 ? "up" : "down"}
+          trendValue={metrics?.passRate > 95 ? "Healthy" : "Needs Review"}
+          isLoading={isLoadingMetrics}
         />
         <StatCard
-          title="Carbon Footprint"
-          value={`${totalCarbonFootprint.toLocaleString()}kg`}
-          subtitle="Total CO₂ equivalent"
-          icon={Recycle}
-          trend="down"
-          trendValue="-5% vs target"
-          isLoading={isLoading}
+          title="EU DPP Readiness"
+          value={metrics?.complianceReadiness || 0}
+          subtitle="Fully compliant components"
+          icon={CheckCircle2}
+          isLoading={isLoadingMetrics}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column: Charts and Key Status */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Scan Trends Chart */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
-                <CardTitle className="text-base font-medium">Verification Activity</CardTitle>
-                <CardDescription>Optical and field scans over the last 7 days</CardDescription>
+                <CardTitle>Verification Activity</CardTitle>
+                <CardDescription>Scan volume across all endpoints over the last 7 days</CardDescription>
               </div>
-              <Badge variant="secondary" className="font-normal text-xs bg-primary/10 text-primary border-primary/20">
-                <Activity className="h-3 w-3 mr-1" />
-                Live
-              </Badge>
+              <Select defaultValue="7d">
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                  <SelectValue placeholder="Select range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="90d">Last 90 days</SelectItem>
+                </SelectContent>
+              </Select>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px] mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={scanTrendData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="scans"
-                      stroke="hsl(var(--primary))"
-                      fill="url(#colorScans)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              {isLoadingMetrics ? (
+                <Skeleton className="h-[300px] w-full" />
+              ) : (
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={metrics?.scanTrendData || []}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >  <defs>
+                        <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="scans"
+                        stroke="hsl(var(--primary))"
+                        fill="url(#colorScans)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Sub-grid for Compliance and SAP */}
           <div className="grid gap-6 sm:grid-cols-2">
             <ComplianceCard products={products} />
-            <SAPSyncCard />
+            <SAPSyncCard syncStatus={metrics?.syncStatus} isLoading={isLoadingMetrics} />
           </div>
         </div>
 
         {/* Right Column: Activity Feed */}
         <div className="space-y-6">
-          <Card className="h-full flex flex-col">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium">Activity Feed</CardTitle>
-                <Button variant="ghost" size="sm" className="h-7 text-xs px-2">
-                  View all
-                </Button>
-              </div>
+          <Card className="flex flex-col h-full">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Network Activity Feed</span>
+                <Badge variant="outline" className="font-mono bg-background/50 text-xs">LIVE</Badge>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 overflow-hidden">
-              <ScrollArea className="h-[430px] pr-4 -mr-4">
-                <div className="space-y-5">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex gap-4">
-                      <div className={`mt-0.5 h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center shrink-0 border border-border/50`}>
-                        <activity.icon className={`h-4 w-4 ${activity.color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <p className="text-sm font-medium leading-none">{activity.title}</p>
-                        <p className="text-sm text-muted-foreground truncate">{activity.description}</p>
-                        <p className="text-xs text-muted-foreground/80 font-mono">{activity.time}</p>
-                      </div>
+            <CardContent className="p-0 flex-1 overflow-hidden relative">
+              <ScrollArea className="h-full w-full">
+                <div className="flex flex-col p-4 w-full">
+                  {isLoadingMetrics ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex gap-4">
+                          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+                          <div className="space-y-2 flex-1">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-3 w-1/2" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : metrics?.recentActivity?.length > 0 ? (
+                    metrics.recentActivity.map((activity: any, i: number) => {
+                      // Dynamically render icons based on type
+                      let Icon = Plus;
+                      let color = "text-muted-foreground";
+
+                      if (activity.type === "scan") {
+                        Icon = activity.status === 'passed' ? QrCode : AlertCircle;
+                        color = activity.status === 'passed' ? "text-emerald-500" : "text-destructive";
+                      } else if (activity.type === "trace") {
+                        Icon = Activity;
+                        color = "text-blue-500";
+                      }
+
+                      return (
+                        <div key={activity.id} className="relative pb-6 last:pb-0 font-sans w-full">
+                          {i !== metrics.recentActivity.length - 1 && (
+                            <div className="absolute left-4 top-8 bottom-0 w-px bg-border/50 -translate-x-1/2"></div>
+                          )}
+                          <div className="flex items-start gap-4">
+                            <div className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background border border-border shadow-sm flex-shrink-0 ${color}`}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                              <p className="text-sm font-medium leading-tight truncate" title={activity.title}>
+                                {activity.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground/80 leading-snug break-words">
+                                {activity.description}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                                {activity.timeLabel}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      No recent activity found on the registry.
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
           </Card>
         </div>
       </div>
-
       {/* Bottom Row: Recent Products and Quick Actions */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Products */}
