@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, serial, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, serial, primaryKey, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -253,7 +253,60 @@ export const insertProductPassportSchema = createInsertSchema(productPassports).
 export type InsertProductPassport = z.infer<typeof insertProductPassportSchema>;
 export type ProductPassport = typeof productPassports.$inferSelect;
 
-// ============================================
+// === BIOGENIC OPTICAL TAG VERIFICATION ===
+
+export const biogenicSignatures = pgTable("biogenic_signatures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  enrolledAt: timestamp("enrolled_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+
+  // Simulated Optical/Physical Characteristics
+  spectralReflectanceCurve: jsonb("spectral_reflectance_curve").$type<number[]>().notNull(),
+  microRefractionIndex: real("micro_refraction_index").notNull(),
+  surfaceTopographyHash: text("surface_topography_hash").notNull(),
+
+  // Cryptographic Proof
+  cryptographicSignature: text("cryptographic_signature").notNull(),
+  status: text("status", { enum: ["active", "revoked", "suspended"] }).default("active").notNull(),
+});
+
+export const insertBiogenicSignatureSchema = createInsertSchema(biogenicSignatures).omit({
+  id: true,
+  enrolledAt: true,
+});
+
+export type BiogenicSignature = typeof biogenicSignatures.$inferSelect;
+export type InsertBiogenicSignature = z.infer<typeof insertBiogenicSignatureSchema>;
+
+export const verificationEvents = pgTable("verification_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  sensorId: varchar("sensor_id").notNull(), // Links to IoT device or mobile app
+  timestamp: timestamp("timestamp").default(sql`CURRENT_TIMESTAMP`).notNull(),
+
+  // Incoming scan data
+  scannedReflectanceCurve: jsonb("scanned_reflectance_curve").$type<number[]>(),
+  scannedTopographyHash: text("scanned_topography_hash"),
+
+  // AI Engine Decision
+  confidenceScore: real("confidence_score").notNull(), // 0.0 to 1.0 (e.g., 0.998)
+  status: text("status", { enum: ["passed", "failed", "inconclusive"] }).notNull(),
+  aiReasoning: text("ai_reasoning"),
+
+  location: text("location"), // e.g., "Munich, Germany"
+  lat: real("lat"),
+  lng: real("lng"),
+});
+
+export const insertVerificationEventSchema = createInsertSchema(verificationEvents).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type VerificationEvent = typeof verificationEvents.$inferSelect;
+export type InsertVerificationEvent = z.infer<typeof insertVerificationEventSchema>;
+
+// Supply Chain Events (Enhanced Traceability)============================================
 // IDENTITIES
 // ============================================
 
@@ -560,7 +613,8 @@ export type EventType =
   | "com.photonictag.ai.insights_generated"
   | "com.photonictag.biogenic.enrolled" // New Biogenic event
   | "com.photonictag.verification.failed" // High-alert event
-  | "com.photonictag.verification.passed";
+  | "com.photonictag.verification.passed"
+  | "com.photonictag.verification.scan_processed";
 
 // ============================================
 // MODULAR DPP - REGIONAL EXTENSIONS

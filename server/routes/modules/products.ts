@@ -141,6 +141,22 @@ router.delete("/:id", isAuthenticated, async (req: Request, res: Response) => {
 // AI ENDPOINTS (Related to products)
 // ==========================================
 
+router.post("/:id/enroll-signature", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const product = await productService.getProduct(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const signature = await aiService.enrollBiogenicSignature(product);
+
+    res.status(201).json(signature);
+  } catch (error) {
+    console.error("Error enrolling biogenic signature:", error);
+    res.status(500).json({ error: "Failed to enroll signature" });
+  }
+});
+
 router.get("/:productId/insights", isAuthenticated, async (req: Request, res: Response) => {
   try {
     const insights = await aiService.getInsightsByProductId(req.params.productId);

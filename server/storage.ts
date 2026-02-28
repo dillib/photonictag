@@ -70,6 +70,14 @@ import {
   type Organization,
   type InsertOrganization,
   type OrgMemberRole,
+
+  biogenicSignatures,
+  type BiogenicSignature,
+  type InsertBiogenicSignature,
+
+  verificationEvents,
+  type VerificationEvent,
+  type InsertVerificationEvent
 } from "@shared/schema";
 
 export interface IStorage {
@@ -194,6 +202,14 @@ export interface IStorage {
   getOrganizationBySlug(slug: string): Promise<Organization | undefined>;
   addUserToOrganization(userId: string, organizationId: string, role: OrgMemberRole): Promise<void>;
   getUserOrganizations(userId: string): Promise<Organization[]>;
+
+  // AI Verification Engine (Biogenic Tags)
+  getBiogenicSignature(productId: string): Promise<BiogenicSignature | undefined>;
+  createBiogenicSignature(signature: InsertBiogenicSignature): Promise<BiogenicSignature>;
+  updateBiogenicSignatureStatus(productId: string, status: string): Promise<void>;
+
+  createVerificationEvent(event: InsertVerificationEvent): Promise<VerificationEvent>;
+  getVerificationEvents(productId: string): Promise<VerificationEvent[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -775,6 +791,40 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(organizations)
       .where(sql`${organizations.id} IN (${sql.join(memberships.map(m => m.organizationId), sql`, `)})`);
+  }
+
+  // ==========================================
+  // PHASE 2: BIOGENIC TAG VERIFICATION ENGINE
+  // ==========================================
+
+  async getBiogenicSignature(productId: string): Promise<BiogenicSignature | undefined> {
+    const [signature] = await db.select().from(biogenicSignatures).where(eq(biogenicSignatures.productId, productId));
+    return signature;
+  }
+
+  async createBiogenicSignature(insertSignature: InsertBiogenicSignature): Promise<BiogenicSignature> {
+    const [signature] = await db.insert(biogenicSignatures).values(insertSignature as typeof biogenicSignatures.$inferInsert).returning();
+    return signature;
+  }
+
+  async updateBiogenicSignatureStatus(productId: string, status: string): Promise<void> {
+    await db
+      .update(biogenicSignatures)
+      .set({ status } as any)
+      .where(eq(biogenicSignatures.productId, productId));
+  }
+
+  async createVerificationEvent(insertEvent: InsertVerificationEvent): Promise<VerificationEvent> {
+    const [event] = await db.insert(verificationEvents).values(insertEvent as typeof verificationEvents.$inferInsert).returning();
+    return event;
+  }
+
+  async getVerificationEvents(productId: string): Promise<VerificationEvent[]> {
+    return db
+      .select()
+      .from(verificationEvents)
+      .where(eq(verificationEvents.productId, productId))
+      .orderBy(desc(verificationEvents.timestamp));
   }
 }
 
