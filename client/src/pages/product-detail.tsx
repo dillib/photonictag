@@ -73,7 +73,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Product, AISummary, SustainabilityInsight, RepairSummary, CircularityScore, RiskAssessment, TraceEvent, IoTDevice, AIInsight } from "@shared/schema";
+import type { Product, AISummary, SustainabilityInsight, RepairSummary, CircularityScore, RiskAssessment, TraceEvent, IoTDevice, AIInsight, BiogenicSignature, VerificationEvent } from "@shared/schema";
 
 const eventTypes = [
   { value: "manufactured", label: "Manufactured" },
@@ -100,6 +100,9 @@ export default function ProductDetail() {
     description: "",
   });
 
+  const [simulateDialogOpen, setSimulateDialogOpen] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{ status: string, confidenceScore: number, reasoning: string } | null>(null);
+
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ["/api/products", params.id],
   });
@@ -118,6 +121,77 @@ export default function ProductDetail() {
     },
     enabled: !!params.id,
   });
+
+  const { data: biogenicSignature, isLoading: isLoadingSignature } = useQuery<BiogenicSignature>({
+    queryKey: ["/api/products", params.id, "biogenic-signature"],
+    enabled: !!params.id,
+    retry: false, // Will return 404 if not enrolled, which is fine
+  });
+
+  const enrollSignatureMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/products/${params.id}/enroll-signature`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products", params.id, "biogenic-signature"] });
+      toast({
+        title: "Signature Enrolled",
+        description: "A secure biogenic signature has been generated for this twin.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Enrollment Failed",
+        description: "Failed to generate biogenic signature. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const verifySignatureMutation = useMutation({
+    mutationFn: async (simulatedData: { scannedReflectanceCurve: number[], scannedTopographyHash: string }) => {
+      const response = await apiRequest("POST", `/api/v1/verify`, {
+        productId: params.id,
+        sensorId: "sim-mobile-app-001",
+        ...simulatedData,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setVerificationResult(data.result);
+      } else {
+        toast({ title: "Simulation Error", description: data.error, variant: "destructive" });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Verification Failed",
+        description: "Failed to run the verify simulation. Check console.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSimulateScan = () => {
+    if (!biogenicSignature) return;
+
+    // Create slightly jittered data based on the real signature to simulate a real-world scan
+    const jitteredCurve = biogenicSignature.spectralReflectanceCurve.map(v =>
+      Math.max(0, Math.min(1, v + (Math.random() * 0.04 - 0.02))) // +/- 2% noise
+    );
+
+    // Random chance to simulate a fake hash
+    const isCounterfeit = Math.random() > 0.8; // 20% chance of fake scan
+    const hash = isCounterfeit ? "FAKE" + biogenicSignature.surfaceTopographyHash.substring(4) : biogenicSignature.surfaceTopographyHash;
+
+    setVerificationResult(null); // reset
+    verifySignatureMutation.mutate({
+      scannedReflectanceCurve: jitteredCurve,
+      scannedTopographyHash: hash
+    });
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -390,6 +464,89 @@ export default function ProductDetail() {
                       <Shield className="h-4 w-4" />
                       Identity & Authentication
                     </h3>
+
+                    {/* Biogenic Signature Block */}
+                    <Card className="mb-6 bg-primary/5 border-primary/20">
+                      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <h4 className="font-medium flex items-center gap-2 text-primary">
+                            <Sparkles className="h-4 w-4" />
+                            Biogenic Reference Signature
+                          </h4>
+                          {biogenicSignature ? (
+                            <div className="text-sm text-muted-foreground flex flex-col gap-1">
+                              <span className="font-mono text-xs">Hash: {biogenicSignature.cryptographicSignature}</span>
+                              <span>Micro-Refractive Index: {biogenicSignature.microRefractionIndex.toFixed(4)}</span>
+                              <span className="text-emerald-500 flex items-center gap-1 mt-1">
+                                <CheckCircle className="h-3 w-3" /> Active and immutable
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No biogenic signature enrolled yet. The product cannot be optically verified.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex-shrink-0">
+                          {biogenicSignature ? (
+                            <Dialog open={simulateDialogOpen} onOpenChange={setSimulateDialogOpen}>
+                              <DialogTrigger asChild>
+                                <Button>
+                                  <Radio className="mr-2 h-4 w-4" />
+                                  Simulate Mobile Scan
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Simulate Field Verification</DialogTitle>
+                                  <DialogDescription>
+                                    This simulates reading the product's physical surface with an optical IoT or mobile sensor to verify its authenticity against the registry.
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                {verificationResult ? (
+                                  <div className={`p-4 rounded-xl border ${verificationResult.status === 'passed' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-destructive/10 border-destructive/30'} space-y-3`}>
+                                    <h4 className={`font-semibold text-lg flex items-center gap-2 ${verificationResult.status === 'passed' ? 'text-emerald-600 dark:text-emerald-500' : 'text-destructive'}`}>
+                                      {verificationResult.status === 'passed' ? <CheckCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                                      {verificationResult.status === 'passed' ? 'Verification Passed' : 'Verification Failed'}
+                                    </h4>
+                                    <div className="space-y-1 text-sm">
+                                      <p><span className="font-medium">Confidence Score:</span> {(verificationResult.confidenceScore * 100).toFixed(1)}%</p>
+                                      <p><span className="font-medium">AI Analysis:</span> {verificationResult.reasoning}</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="py-6 flex flex-col items-center justify-center space-y-4">
+                                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                                      <Sparkles className="h-10 w-10 text-primary animate-bounce" />
+                                    </div>
+                                    <p className="text-muted-foreground text-center">Ready to scan the physical substrate...</p>
+                                  </div>
+                                )}
+
+                                <DialogFooter>
+                                  <Button variant="outline" onClick={() => setSimulateDialogOpen(false)}>Close</Button>
+                                  <Button onClick={handleSimulateScan} disabled={verifySignatureMutation.isPending}>
+                                    {verifySignatureMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                    {verificationResult ? "Rescan" : "Scan Now"}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          ) : (
+                            <Button
+                              onClick={() => enrollSignatureMutation.mutate()}
+                              disabled={enrollSignatureMutation.isPending}
+                            >
+                              {enrollSignatureMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                              Generate Reference
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <div className="space-y-1">
                         <div className="text-sm text-muted-foreground">Manufacturer</div>

@@ -7,6 +7,7 @@ import { identityService } from "../../services/identity-service";
 import { traceService } from "../../services/trace-service";
 import { auditService } from "../../services/audit-service";
 import { aiService } from "../../services/ai-service";
+import { storage } from "../../storage";
 import { isAuthenticated, isAdmin } from "../../auth";
 import { z } from "zod";
 
@@ -140,6 +141,20 @@ router.delete("/:id", isAuthenticated, async (req: Request, res: Response) => {
 // ==========================================
 // AI ENDPOINTS (Related to products)
 // ==========================================
+
+router.get("/:id/biogenic-signature", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    // Reusing getProduct since biogenic-signature links to product.id
+    const signature = await storage.getBiogenicSignature(req.params.id);
+    if (!signature) {
+      return res.status(404).json({ error: "No signature found" });
+    }
+    res.json(signature);
+  } catch (error) {
+    console.error("Error fetching biogenic signature:", error);
+    res.status(500).json({ error: "Failed to fetch signature" });
+  }
+});
 
 router.post("/:id/enroll-signature", isAuthenticated, async (req: Request, res: Response) => {
   try {
