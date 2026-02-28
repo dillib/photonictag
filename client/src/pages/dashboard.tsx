@@ -373,120 +373,93 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts and Status Row */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Scan Trends Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Verification Activity</CardTitle>
+        {/* Left Column: Charts and Key Status */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Scan Trends Chart */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-base font-medium">Verification Activity</CardTitle>
                 <CardDescription>Optical and field scans over the last 7 days</CardDescription>
               </div>
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="font-normal text-xs bg-primary/10 text-primary border-primary/20">
                 <Activity className="h-3 w-3 mr-1" />
                 Live
               </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={scanTrendData}>
-                  <defs>
-                    <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="scans"
-                    stroke="hsl(var(--primary))"
-                    fill="url(#colorScans)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* SAP Integration Status */}
-        <SAPSyncCard />
-      </div>
-
-      {/* Second Row: Categories, Compliance, Activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Products by Category */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Twins by Category</CardTitle>
-            <CardDescription>Distribution across {uniqueCategories} material categories</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
-                  <XAxis type="number" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis dataKey="name" type="category" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} width={70} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Compliance Card */}
-        <ComplianceCard products={products} />
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-              <Button variant="ghost" size="sm" className="h-7 text-xs">
-                View all
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[200px] pr-4">
-              <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex gap-3">
-                    <div className={`h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0`}>
-                      <activity.icon className={`h-4 w-4 ${activity.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px] mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={scanTrendData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="scans"
+                      stroke="hsl(var(--primary))"
+                      fill="url(#colorScans)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Sub-grid for Compliance and SAP */}
+          <div className="grid gap-6 sm:grid-cols-2">
+            <ComplianceCard products={products} />
+            <SAPSyncCard />
+          </div>
+        </div>
+
+        {/* Right Column: Activity Feed */}
+        <div className="space-y-6">
+          <Card className="h-full flex flex-col">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-medium">Activity Feed</CardTitle>
+                <Button variant="ghost" size="sm" className="h-7 text-xs px-2">
+                  View all
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden">
+              <ScrollArea className="h-[430px] pr-4 -mr-4">
+                <div className="space-y-5">
+                  {recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex gap-4">
+                      <div className={`mt-0.5 h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center shrink-0 border border-border/50`}>
+                        <activity.icon className={`h-4 w-4 ${activity.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-medium leading-none">{activity.title}</p>
+                        <p className="text-sm text-muted-foreground truncate">{activity.description}</p>
+                        <p className="text-xs text-muted-foreground/80 font-mono">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Bottom Row: Recent Products and Quick Actions */}

@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { CommandMenu } from "@/components/command-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
@@ -46,7 +47,10 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden bg-background rounded-tl-[2rem] border-t border-l border-border shadow-sm">
           <header className="flex h-14 items-center justify-between gap-4 border-b px-4 shrink-0 bg-background/80 backdrop-blur-md z-10">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <div className="flex items-center gap-4 flex-1">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <CommandMenu />
+            </div>
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 relative">
